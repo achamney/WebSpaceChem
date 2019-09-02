@@ -1,0 +1,82 @@
+.square {
+		border: 1px solid #ddd;
+		position: absolute;
+		width: 60px;
+		height: 60px;
+	}
+.square:hover {
+	outline: 2px solid black;
+}
+.blk {
+	border: 1px solid #ddd;
+	position: absolute;
+}
+.toplblock {
+	background-color: #E66;
+}
+.toprblock {
+	background-color: #F99;
+}
+.bottomlblock {
+	background-color: #66E;
+}
+.bottomrblock {
+	background-color: #99F;
+}
+button {
+	position: absolute;
+	color: black;
+}
+.btnAlpha {
+	background-color: #FDD;
+}
+.btnBeta {
+	background-color: #DDF;
+}
+.symbol {
+	text-align: center;
+	margin-top: auto;
+	margin-bottom: auto;
+	border-radius: 20px;
+	position: absolute;
+	box-shadow: 1px 1px 5px 0px #000;
+}
+.symbol.selected {
+	outline: 1px solid #09F;
+}
+.symbol.Alpha {
+	background-color: #FDD;
+}
+.symbol.Beta {
+	background-color: #DDF;
+	margin-top: 20px;
+	margin-left: 20px;
+}
+.start {
+	border-radius: 25px;
+}
+.start::after {
+	content: 'Start';
+}
+.left::after {
+	content: '<-';
+}
+.right::after {
+	content: '->';
+}
+.up::after {
+	content: '^';
+}
+.down::after {
+	content: 'v';
+}
+.line.Alpha {
+	background-color: rgba(255,1,1,0.1);
+}
+.line.Beta {
+	background-color: rgba(1,1,255,0.1);
+}
+#arrows {
+	position: relative;
+	z-index: 1;
+}
