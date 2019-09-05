@@ -1,3 +1,4 @@
+window.uniqueIds = 0;
 window.makebtn = function (tagname, parent, text, left, top, funct, width, height) {
     width = width || 150;
     height = height || 50;
@@ -6,12 +7,14 @@ window.makebtn = function (tagname, parent, text, left, top, funct, width, heigh
     ret.onclick = funct;
     return ret;
 }
-window.makesq = function(tagname, parent, clazz, left, top, width, height) {
+window.makesq = function(tagname, parent, clazz, left, top, width, height, drop) {
     var ret = make(tagname, parent, clazz);
     ret.style.left = left + 'px';
     ret.style.top = top + 'px';
     ret.style.width = width + 'px';
     ret.style.height = height + 'px';
+    ret.ondragover = function (e) { e.preventDefault(); };
+    ret.ondrop = drop;
     return ret;
 }
 window.make = function(tagname, parent, clazz, prepend) {
@@ -19,6 +22,7 @@ window.make = function(tagname, parent, clazz, prepend) {
         parent = document.body;
     }
     var el = document.createElement(tagname);
+    el.id = "gameid"+(uniqueIds++);
     if (prepend) {
         parent.prepend(el);
     } else {
@@ -32,8 +36,9 @@ window.make = function(tagname, parent, clazz, prepend) {
     }
     return el;
 }
-window.delElement = function(el) {
-    el.remove(el);
+window.delElement = function (el) {
+    if (el)
+        el.remove(el);
 }
 window.clear = function(el) {
     el.innerHTML = '';
