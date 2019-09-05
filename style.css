@@ -1,4 +1,4 @@
-.square {
+﻿.square {
 		border: 1px solid #ddd;
 		position: absolute;
 		width: 60px;
@@ -34,12 +34,13 @@ button {
 	background-color: #DDF;
 }
 .symbol {
-	text-align: center;
-	margin-top: auto;
-	margin-bottom: auto;
-	border-radius: 20px;
-	position: absolute;
-	box-shadow: 1px 1px 5px 0px #000;
+    text-align: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    border-radius: 20px;
+    position: absolute;
+    box-shadow: 1px 1px 5px 0px #000;
+    word-break: break-word;
 }
 .symbol.selected {
 	outline: 1px solid #09F;
@@ -71,12 +72,63 @@ button {
 	content: 'v';
 }
 .line.Alpha {
-	background-color: rgba(255,1,1,0.1);
+	background-color: rgba(255,1,1,0.5);
 }
 .line.Beta {
-	background-color: rgba(1,1,255,0.1);
+	background-color: rgba(1,1,255,0.5);
 }
 #arrows {
 	position: relative;
 	z-index: 1;
+}
+.waldo {
+    border-radius: 25px;
+    position: absolute;
+    box-shadow: 1px 1px 5px 0px #000;
+}
+.waldo.Alpha {
+    border: 6px solid #F00;
+}
+.waldo.Beta {
+    border: 6px solid #00F;
+}
+.in.InAlpha::after {
+    content: 'In α';
+}
+.in.InBeta::after {
+    content: 'In β';
+}
+.out.OutAlpha::after {
+    content: 'Out α';
+}
+.out.OutBeta::after {
+    content: 'Out β';
+}
+.grab::after {
+    content: 'Grab';
+}
+.grabdrop::after {
+    content: 'Grab / Drop';
+}
+.drop::after {
+    content: 'Drop';
+}
+#elements{
+    z-index:1;
+    position: relative;
+}
+.element {
+    text-align: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    border-radius: 20px;
+    position: absolute;
+    box-shadow: 1px 1px 5px 0px #000;
+    font-size: 20px;
+    background-color: rgba(255,255,255,0.7);
+    padding: 11px;
+    margin: 10px;
+}
+.element.Cl::after {
+    content: 'Cl';
 }
