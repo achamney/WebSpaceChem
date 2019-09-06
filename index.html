@@ -1,21 +1,25 @@
 <html>
 <head>
-<link type="text/css" href="style.css" rel="stylesheet" />
+    <link type="text/css" href="style.css" rel="stylesheet" />
     <title>WebSpaceChem</title>
 </head>
-<body style = "padding:0;margin:0">
+<body style="padding:0;margin:0">
     <textarea rows="16" cols="100" id="config">
         {
             "alpha": {
-                "in": [ {"name": "Cl", "location": { "x": 2, "y": 2 }, "probability": 100 }], 
-                "outReqs": { "Cl": 40 }
+                "in": [ {"name": "O", "location": { "x": 2, "y": 2 }, "probability": 100 }], 
+                "outReqs": { 
+                    "count": 40, 
+                    "elements":[{"name":"H", "id":"H1"},{"name":"O", "id":"O2"},{"name":"H", "id":"H3"}],
+                    "bonds":[{ "count": 1, "left": "H1", "right": "O2" },{ "count": 1, "left": "O2", "right": "H3" }]
+                }
             }, "beta": {
-                "in": [ {"name": "Cl", "location": { "x": 2, "y": 6 }, "probability": 100 }], 
+                "in": [ {"name": "H", "location": { "x": 2, "y": 6 }, "probability": 100 }], 
                 "outReqs": {}
             }
         }
     </textarea>
-    <br/>
+    <br />
     <button id="begin">Begin</button>
     <div id="canvas" style="width:100%;position:relative;">
         <div id="symbols"></div>
@@ -26,5 +30,12 @@
 </body>
 
 <script src="markgen.js"></script>
+<script src="symbolarrows.js"></script>
+<script src="symbolbond.js"></script>
+<script src="symbolgrab.js"></script>
+<script src="symbolin.js"></script>
+<script src="symbolout.js"></script>
+<script src="symbolstart.js"></script>
+<script src="symbolrotate.js"></script>
 <script src="game.js"></script>
 </html>

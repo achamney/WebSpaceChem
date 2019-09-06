@@ -127,6 +127,14 @@ button {
 .drop::after {
     content: 'Drop';
 }
+.rotate.clock::after {
+    font-size: 30px;
+    content: '↻';
+}
+.rotate.counter::after {
+    font-size: 30px;
+    content: '↺';
+}
 #elements{
     z-index:1;
     position: relative;

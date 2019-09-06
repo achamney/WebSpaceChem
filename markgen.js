@@ -54,6 +54,9 @@ window.clone = function(thing) {
     }
     return newthing;
 }
+window.deepClone = function (thing) {
+    return JSON.parse(JSON.stringify(thing));
+}
 
 window.incTop = function (el, val) {
     el.style.top = parseFloat(el.style.top) + val + "px";
