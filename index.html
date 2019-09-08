@@ -4,23 +4,37 @@
     <title>WebSpaceChem</title>
 </head>
 <body style="padding:0;margin:0">
-    <textarea rows="16" cols="100" id="config">
-        {
-            "alpha": {
-                "in": [ {"name": "O", "location": { "x": 2, "y": 2 }, "probability": 100 }], 
-                "outReqs": { 
-                    "count": 40, 
-                    "elements":[{"name":"H", "id":"H1"},{"name":"O", "id":"O2"},{"name":"H", "id":"H3"}],
-                    "bonds":[{ "count": 1, "left": "H1", "right": "O2" },{ "count": 1, "left": "O2", "right": "H3" }]
+    <div style="display: flex" id="configContainer">
+        <div style="padding: 5px">
+            <h2>Config JSON:</h2>
+            <textarea rows="16" cols="100" id="config">
+            {
+                "alpha": {
+                    "in": [ {"name": "N", "location": { "x": 2, "y": 2 }, "probability": 100 }], 
+                    "outReqs": { 
+                        "count": 40, 
+                        "elements":[{"name":"H", "id":"H1"},{"name":"N", "id":"N2"},{"name":"H", "id":"H3"}],
+                        "bonds":[{ "count": 1, "left": "H1", "right": "N2" },{ "count": 1, "left": "N2", "right": "H3" }]
+                    }
+                }, "beta": {
+                    "in": [ {"name": "H", "id":"h1", "location": { "x": 2, "y": 6 }, 
+                            "probability": 100, "bonds":["h2"] }, 
+                            {"name": "H", "id":"h2", "location": { "x": 3, "y": 6 }, 
+                            "probability": 100, "bonds":["h1"] }],
+                    "inBonds": [{ "count": 1, "left": "h1", "right": "h2" }],
+                    "outReqs": {}
                 }
-            }, "beta": {
-                "in": [ {"name": "H", "location": { "x": 2, "y": 6 }, "probability": 100 }], 
-                "outReqs": {}
             }
-        }
-    </textarea>
-    <br />
-    <button id="begin">Begin</button>
+            </textarea>
+            <br />
+            <button id="begin">Begin</button>
+        </div>
+        <div style="flex: 1; padding: 5px">
+            <h2>Levels:</h2>
+            <div id="levels">
+            </div>
+        </div>
+    </div>
     <div id="canvas" style="width:100%;position:relative;">
         <div id="symbols"></div>
         <div id="arrows"></div>
@@ -29,6 +43,7 @@
     </div>
 </body>
 
+<script src="configs.js"></script>
 <script src="markgen.js"></script>
 <script src="symbolarrows.js"></script>
 <script src="symbolbond.js"></script>
@@ -37,5 +52,8 @@
 <script src="symbolout.js"></script>
 <script src="symbolstart.js"></script>
 <script src="symbolrotate.js"></script>
+<script src="symbolsync.js"></script>
+<script src="periodictable.js"></script>
+<script src="particle.js"></script>
 <script src="game.js"></script>
 </html>

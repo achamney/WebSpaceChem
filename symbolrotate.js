@@ -69,15 +69,3 @@ function rotateElByAmount(waldo, moveAngle, updateGrid) {
         });
     }
 }
-function traverseBonds(el, visit) {
-    traverseBondsIter(el, visit, []);
-}
-function traverseBondsIter(el, visit, visited) {
-    visit(el);
-    visited.push(el);
-    for (var bond of el.bonds) {
-        if (visited.indexOf(bond) == -1) {
-            traverseBondsIter(bond, visit, visited);
-        }
-    }
-}

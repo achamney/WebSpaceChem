@@ -6,10 +6,22 @@
             var configJson = JSON.parse(config.value);
             beginButton.style.display = "none";
             config.style.display = "none";
+            get("configContainer").style.display = "none";
             loadGame(configJson);
         } catch (e) {
             alert("Error parsing configuration file, try again");
         }
+    }
+    var levels = get("levels");
+    for (var levelId in configs) {
+        var level = configs[levelId];
+        var btn = makebtn("button", levels, level.name, 0, 0, setConfig(configs[levelId]));
+        btn.style.width = "100%";
+    }
+}
+function setConfig(config) {
+    return function () {
+        get("config").value = JSON.stringify(config, null, 4);
     }
 }
 function loadGame(config) {
@@ -21,12 +33,20 @@ function loadGame(config) {
     window.cycles = 0;
     window.alpha = {
         paths: [], symbols: [], in: config.alpha.in, outReqs: config.alpha.outReqs,
+        inBonds: config.alpha.inBonds,
         mode: "Alpha"
     };
     window.beta = {
         paths: [], symbols: [], in: config.beta.in, outReqs: config.beta.outReqs,
+        inBonds: config.beta.inBonds,
         mode: "Beta"
     };
+    if (alpha.outReqs) {
+        alpha.outReqs.maxCount = alpha.outReqs.count;
+    }
+    if (beta.outReqs) {
+        beta.outReqs.maxCount = beta.outReqs.count;
+    }
     window.mode = alpha;
     window.reactorFeatures = [];
 
@@ -120,6 +140,7 @@ function makeBonder(sq) {
     bonder.ondragover = null;
     bonder.ondrop = null;
     reactorFeatures.push(bonder);
+    bonder.innerHTML = "+ - <sup>" + reactorFeatures.length+"</sup>";
 }
 function dropSymSq(sq) {
     return function (ev) {
@@ -142,32 +163,40 @@ function dropSymSq(sq) {
 function makeHeader(greek, greekSymbol) {
     var ret = "In ";
     ret += greekSymbol + " ";
-    for (var inEl of greek.in) {
-        ret += "location (" + inEl.name + "): (" + (inEl.location.x+1) + ", " + (inEl.location.y+1)+") ";
+    if (greek.in.length > 0) {
+        var inElText = elTreeToText(greek.in, greek.inBonds);
+        ret += " [" + inElText + "]: location ";
+        for (var inEl of greek.in) {
+            ret += "(" + (inEl.location.x + 1) + ", " + (inEl.location.y + 1) + ") ";
+        }
     }
     if (greek.outReqs.elements) {
-        var cloneBonds = deepClone(greek.outReqs.bonds);
-        var elText = "", curEl = greek.outReqs.elements[0];
-        while (curEl) {
-            elText += curEl.name;
-            var bond = cloneBonds.filter(b => b.left == curEl.id || b.right == curEl.id)[0];
-            if (bond) {
-                var bondInd = cloneBonds.indexOf(bond);
-                cloneBonds.splice(bondInd, 1);
-                var nextBondEl = bond.left == curEl.id ? bond.right : bond.left;
-                curEl = greek.outReqs.elements.filter(e => e.id == nextBondEl)[0];
-                elText += " ";
-                if (bond.count == 1) elText += "-";
-                if (bond.count == 2) elText += "=";
-                if (bond.count == 3) elText += "<u>=</u>";
-                elText += " ";
-            } else {
-                curEl = null;
-            }
-        }
+        var elText = elTreeToText(greek.outReqs.elements, greek.outReqs.bonds);
         ret += ". Out [" + elText + "] : " + greek.outReqs.count;
     }
     return ret;
+}
+function elTreeToText(elements, bonds) {
+    var cloneBonds = bonds ? deepClone(bonds) : [];
+    var elText = "", curEl = elements[0];
+    while (curEl) {
+        elText += curEl.name;
+        var bond = cloneBonds.filter(b => b.left == curEl.id || b.right == curEl.id)[0];
+        if (bond) {
+            var bondInd = cloneBonds.indexOf(bond);
+            cloneBonds.splice(bondInd, 1);
+            var nextBondEl = bond.left == curEl.id ? bond.right : bond.left;
+            curEl = elements.filter(e => e.id == nextBondEl)[0];
+            elText += " ";
+            if (bond.count == 1) elText += "-";
+            if (bond.count == 2) elText += "=";
+            if (bond.count == 3) elText += "<u>=</u>";
+            elText += " ";
+        } else {
+            curEl = null;
+        }
+    }
+    return elText;
 }
 function setSqListeners(sq) {
     sq.onclick = function () {
@@ -247,6 +276,12 @@ window.greek = function(name) {
         return alpha;
     return beta;
 }
+window.greekOpposite = function (name) {
+    if (name == "Beta")
+        return alpha;
+    if (name == "Alpha" )
+        return beta;
+}
 function makeBuildButtons(canvas) {
     var buttonpos = -40;
     var buttonContainer = get('buttonContainer');
@@ -268,6 +303,8 @@ function makeBuildButtons(canvas) {
         function () { curSymbol = "Bond" });
     makebtns(greekMode, 'button', buttonContainer, 'Rotate (t)', mapsizex + 10, buttonpos += 50, "Rotate",
         function () { curSymbol = "Rotate" });
+    makebtns(greekMode, 'button', buttonContainer, 'Sync (y)', mapsizex + 10, buttonpos += 50, "Sync",
+        function () { curSymbol = "Sync" });
     makebtns(greekMode, 'button', buttonContainer, '^ (w)', mapsizex + 10, buttonpos += 50, "Up",
         function () { curSymbol = "Up" }, 40);
     makebtns(greekMode, 'button', buttonContainer, 'v (s)', mapsizex + 10 + 36, buttonpos, "Down",
@@ -337,8 +374,9 @@ function stopGame(canvas) {
     alpha.waldo = null;
     beta.waldo = null;
     makeBuildButtons(canvas);
-    alpha.outReqs.count = 40;
-    beta.outReqs.count = 40;
+    alpha.outReqs.count = alpha.outReqs.maxCount;
+    beta.outReqs.count = beta.outReqs.maxCount;
+    cycles = 0;
 }
 function makebtns(greekMode, tagname, parent, text, left, top, name, funct, width, height) {
     var ret = makebtn(tagname, parent, text, left, top, funct, width, height);
@@ -452,14 +490,14 @@ function checkWin() {
         winGame = false;
     }
     
-    //if (beta.outReqs.count && beta.outReqs.count  > 0) {
-    //    winGame = false;
-    //}
+    if (beta.outReqs.count && beta.outReqs.count  > 0) {
+        winGame = false;
+    }
     
     if (winGame) {
-        stopGame();
         alert("Mission successful. Total symbols: [" + (alpha.symbols.length + beta.symbols.length) +
             "]. Total cycles: [" + cycles + "]");
+        stopGame(get("canvas"));
     }
 }
 function runSetup(canvas, greek, greekMode) {
@@ -483,12 +521,10 @@ function moveRunTimer(greek, greekMode, timeInterval) {
         incLeft(greek.waldo, greek.waldo.direction.x * xDistTick);
         incTop(greek.waldo, greek.waldo.direction.y * yDistTick);
         if (greek.waldo.grabbedElement) {
-            incLeft(greek.waldo.grabbedElement, greek.waldo.direction.x * xDistTick);
-            incTop(greek.waldo.grabbedElement, greek.waldo.direction.y * yDistTick);
-            for (var bonded of greek.waldo.grabbedElement.bonds) {
+            traverseBonds(greek.waldo.grabbedElement, function (bonded) {
                 incLeft(bonded, greek.waldo.direction.x * xDistTick);
                 incTop(bonded, greek.waldo.direction.y * yDistTick);
-            }
+            });
         }
     } else if (greek.waldo.action == "clock" || greek.waldo.action == "counter") {
         rotateMoveElements(greek, timeInterval);
@@ -501,21 +537,16 @@ function activateRunTimer(greek, greekMode) {
         if (greek.waldo.gridx < 0) greek.waldo.gridx = 0;
         if (greek.waldo.gridy < 0) greek.waldo.gridy = 0;
         if (greek.waldo.gridx > 9) greek.waldo.gridx = 9;
-        if (greek.waldo.gridy > 9) greek.waldo.gridy = 9;
+        if (greek.waldo.gridy > 7) greek.waldo.gridy = 7;
         greek.waldo.style.left = mapsizex / 10 * greek.waldo.gridx + "px";
         greek.waldo.style.top = mapsizey / 8 * greek.waldo.gridy + "px";
         if (greek.waldo.grabbedElement) {
-            greek.waldo.grabbedElement.gridx = greek.waldo.gridx;
-            greek.waldo.grabbedElement.gridy = greek.waldo.gridy;
-            greek.waldo.grabbedElement.style.left = greek.waldo.style.left;
-            greek.waldo.grabbedElement.style.top = greek.waldo.style.top;
-
-            for (var bonded of greek.waldo.grabbedElement.bonds) {
+            traverseBonds(greek.waldo.grabbedElement, function (bonded) {
                 bonded.gridx += greek.waldo.direction.x;
                 bonded.gridy += greek.waldo.direction.y;
                 bonded.style.left = mapsizex / 10 * bonded.gridx + "px";
                 bonded.style.top = mapsizey / 8 * bonded.gridy + "px";
-            }
+            });
         }
         var arrowSym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy }, true);
         var actionSym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy }, false);
@@ -528,6 +559,17 @@ function activateRunTimer(greek, greekMode) {
     } else if (greek.waldo.action == "counter" || greek.waldo.action == "clock") {
         rotateActionElements(greek);
         greek.waldo.action = "move";
+    } else if (greek.waldo.action == "sync") {
+        var oppoGreek = greekOpposite(greek.mode);
+        if (oppoGreek.waldo.action == "sync") {
+            greek.waldo.action = "move";
+            oppoGreek.waldo.action = "move";
+        }
+    } else {
+        var actionSym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy }, false);
+        if (actionSym) {
+            actionSym.performAction(greek, greekMode);
+        }
     }
 }
 function clearIntervals() {
@@ -538,5 +580,18 @@ function clearIntervals() {
     if (window.activateInterval) {
         window.clearInterval(activateInterval);
         window.activateInterval = null;
+    }
+}
+
+window.traverseBonds = function(el, visit) {
+    traverseBondsIter(el, visit, []);
+}
+function traverseBondsIter(el, visit, visited) {
+    visit(el);
+    visited.push(el);
+    for (var bond of el.bonds) {
+        if (visited.indexOf(bond) == -1) {
+            traverseBondsIter(bond, visit, visited);
+        }
     }
 }

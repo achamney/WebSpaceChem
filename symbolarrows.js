@@ -42,7 +42,7 @@ window.symbolDown = {
         return sym;
     }
 };
-function makeDelButton(greek) {
+window.makeDelButton = function(greek) {
     return function (sym) {
         var parent = get("symButtons");
         clear(parent);

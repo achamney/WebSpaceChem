@@ -14,25 +14,25 @@
                         var b1e = getElOnSquare(elements, b1);
                         var b2e = getElOnSquare(elements, b2);
                         if (b1e && b2e) {
-                            if (sym.bond == "bond") {
-                                traverseBonds(b1e, b => {
-                                    addAllBonds(b, b2e);
-                                });
-                                traverseBonds(b2e, b => {
-                                    addAllBonds(b, b1e);
-                                });
-                                if (b1e.grabbed || b2e.grabbed) {
-                                    b1e.grabbed = b2e.grabbed = true;
+                            if (sym.bond == "bond" && !maxBonds(b1e) && !maxBonds(b2e)) {
+                                b1e.bonds.push(b2e);
+                                b2e.bonds.push(b1e);
+                                for (var i = 0; i < 10; i++) {
+                                    makeParticle(b1e.gridx * mapsizex / 10 + 25, b1e.gridy * mapsizey / 8 + 25, "+", greek);
                                 }
-
+                                if (b1e.grabbed || b2e.grabbed) {
+                                    traverseBonds(b1e, function (b) {
+                                        b.grabbed = true;
+                                    });
+                                }
                             } else if (sym.bond == "debond") {
-                                traverseBonds(b1e, b => {
-                                    removeBonds(b, b2e);
-                                });
-                                traverseBonds(b2e, b => {
-                                    removeBonds(b, b1e);
-                                });
+                                removeBonds(b1e, b2e);
+                                removeBonds(b2e, b1e);
+                                for (var i = 0; i < 10; i++) {
+                                    makeParticle(b1e.gridx * mapsizex / 10 + 25, b1e.gridy * mapsizey / 8 + 25, "-", greek);
+                                }
                             }
+                            adjustBondBars(b1e);
                             bonded.push({ b1: b1, b2: b2 });
                         }
                     }
@@ -43,10 +43,48 @@
         return sym;
     }
 }
+window.adjustBondBars = function (element) {
+    for (var bondbar of element.bondBars) {
+        delElement(bondbar);
+    }
+    element.bondBars = [];
+    for (var bond of element.bonds) {
+        var count = element.bonds.filter(b => b == bond).length;
+        var difx = bond.gridx - element.gridx;
+        var dify = bond.gridy - element.gridy;
+        var width = difx != 0 ? 20 : 5;
+        var height = dify != 0 ? 20 : 5; 
+        var spread = 7,
+            startSpread = -count/2*spread/2;
+        for (var i = 0; i < count; i++) {
+            var bondBar = makesq("div", element, "bondbar", 0, 0, width, height);
+            if (difx > 0) {
+                bondBar.style.left = "50px";
+                bondBar.style.top = (startSpread + 20) + "px";
+            } else if (difx < 0) {
+                bondBar.style.left = "50px";
+                bondBar.style.top = (startSpread + 20) + "px";
+            } else if (dify > 0) {
+                bondBar.style.top = "40px";
+                bondBar.style.left = (startSpread + 20) + "px";
+            } else if (dify < 0) {
+                bondBar.style.top = "-50px";
+                bondBar.style.left = (startSpread + 20) + "px";
+            } 
+            element.bondBars.push(bondBar);
+            startSpread += spread;
+        }
+    }
+}
 function removeBonds(element, orphan) {
     var ind = element.bonds.indexOf(orphan);
     if (~ind) {
         element.bonds.splice(ind, 1);
+        if (element.grabbed) {
+            traverseBonds(orphan, function () {
+                orphan.grabbed = false;
+            });
+        }
     }
 }
 function createBondSubButtons(greek) {
@@ -74,27 +112,6 @@ function createBondSubButtons(greek) {
                 greek.symbols.splice(symInd, 1);
             }
         }, 100, 50));
-    }
-}
-function addAllBonds(el1, el2) {
-    if (el1.bonds.indexOf(el2) == -1 && el1 != el2) {
-        el1.bonds.push(el2);
-    }
-    for (var el of el2.bonds) {
-        if (el1.bonds.indexOf(el) == -1 && el != el1)
-            el1.bonds.push(el);
-    }
-}
-function traverseBonds(el, visit) {
-    traverseBondsIter(el, visit, []);
-}
-function traverseBondsIter(el, visit, visited) {
-    visit(el);
-    visited.push(el);
-    for (var bond of el.bonds) {
-        if (visited.indexOf(bond) == -1) {
-            traverseBondsIter(bond, visit, visited);
-        }
     }
 }
 function alreadyBonded(bonded, b1, b2) {

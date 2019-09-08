@@ -4,25 +4,22 @@
         var sym = makesym('div', sq, 'symbol out Out' + greek.mode + ' ' + greek.mode, 0, 0, 50, 50, createOutSubButtons(greek));
         sym.greek = greek.mode;
         sym.performAction = function (greekName, g) {
-            for (var i = 0; i < elements.childNodes.length; i++) {
+            var outed = false;
+            for (var i = elements.childNodes.length - 1; i >=0; i--) {
                 var element = elements.childNodes[i];
-                if (!element.grabbed) {
+                if (element && !element.grabbed) {
                     if (sym.greek == "Alpha") {
                         if (checkAllInBounds(element, (x, y) => x > 5 && y < 4)
                             && meetsRequirements(element, alpha)) {
-                            traverseBonds(element, b => {
-                                delElement(b);
-                            });
-                            alpha.outReqs.count--;
+                            performOut(alpha, greek, element, outed);
+                            outed = true;
                         }
                     }
                     else if (sym.greek == "Beta") {
                         if (checkAllInBounds(element, (x, y) => x > 5 && y >= 4)
                             && meetsRequirements(element, beta)) {
-                            traverseBonds(element, b => {
-                                delElement(b);
-                            });
-                            beta.outReqs.count--;
+                            performOut(beta, greek, element, outed);
+                            outed = true;
                         }
                     }
                 }
@@ -30,6 +27,17 @@
         };
         setGrid(sym, sq, sq);
         return sym;
+    }
+}
+function performOut(greek, walGreek, element, outed) {
+    if (!outed) {
+        traverseBonds(element, b => {
+            delElement(b);
+        });
+        greek.outReqs.count--;
+        walGreek.waldo.action = "move";
+    } else {
+        walGreek.waldo.action = "out";
     }
 }
 function meetsRequirements(el, greek) {
@@ -46,8 +54,30 @@ function meetsRequirements(el, greek) {
             els.splice(els.indexOf(foundEl), 1);
         }
     }
-    //TODO: check bond count
-    return els.length == 0;
+    if (els.length > 0) {
+        return false;
+    }
+    for (var bond of greek.outReqs.bonds) {
+        var bondFound = false;
+        var outReq1El = greek.outReqs.elements.filter(e => e.id == bond.left)[0];
+        var outReq2El = greek.outReqs.elements.filter(e => e.id == bond.right)[0];
+        traverseBonds(el, b => {
+            for (var elBond of el.bonds) {
+                if ((b.symbol == outReq1El.name && elBond.symbol == outReq2El.name) ||
+                    (b.symbol == outReq2El.name && elBond.symbol == outReq1El.name)) {
+                    var count = b.bonds.filter(b => b.symbol == outReq2El.name || b.symbol == outReq1El.name);
+                    if (bond.count == count.length) {
+                        bondFound = true;
+                    }
+                }
+            }
+        });
+
+        if (!bondFound) {
+            return false;
+        }
+    }
+    return true;
 }
 function checkAllInBounds(el, boundChecker) {
     var withinBounds = true;
