@@ -10,16 +10,16 @@
             <textarea rows="16" cols="100" id="config">
             {
                 "alpha": {
-                    "in": [ {"name": "N", "location": { "x": 2, "y": 2 }, "probability": 100 }], 
+                    "in": [ {"name": "N", "x": 2, "y": 2, "probability": 100 }], 
                     "outReqs": { 
                         "count": 40, 
                         "elements":[{"name":"H", "id":"H1"},{"name":"N", "id":"N2"},{"name":"H", "id":"H3"}],
                         "bonds":[{ "count": 1, "left": "H1", "right": "N2" },{ "count": 1, "left": "N2", "right": "H3" }]
                     }
                 }, "beta": {
-                    "in": [ {"name": "H", "id":"h1", "location": { "x": 2, "y": 6 }, 
+                    "in": [ {"name": "H", "id":"h1", "x": 2, "y": 2, 
                             "probability": 100, "bonds":["h2"] }, 
-                            {"name": "H", "id":"h2", "location": { "x": 3, "y": 6 }, 
+                            {"name": "H", "id":"h2", "x": 3, "y": 2, 
                             "probability": 100, "bonds":["h1"] }],
                     "inBonds": [{ "count": 1, "left": "h1", "right": "h2" }],
                     "outReqs": {}
@@ -36,6 +36,7 @@
         </div>
     </div>
     <div id="canvas" style="width:100%;position:relative;">
+        <div id="reqs"></div>
         <div id="symbols"></div>
         <div id="arrows"></div>
         <div id="elements"></div>
@@ -53,6 +54,7 @@
 <script src="symbolstart.js"></script>
 <script src="symbolrotate.js"></script>
 <script src="symbolsync.js"></script>
+<script src="symbolsensor.js"></script>
 <script src="periodictable.js"></script>
 <script src="particle.js"></script>
 <script src="game.js"></script>

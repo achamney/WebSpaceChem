@@ -66,6 +66,7 @@ function meetsRequirements(el, greek) {
                 if ((b.symbol == outReq1El.name && elBond.symbol == outReq2El.name) ||
                     (b.symbol == outReq2El.name && elBond.symbol == outReq1El.name)) {
                     var count = b.bonds.filter(b => b.symbol == outReq2El.name || b.symbol == outReq1El.name);
+                    removeNonDupes(count);
                     if (bond.count == count.length) {
                         bondFound = true;
                     }
@@ -78,6 +79,15 @@ function meetsRequirements(el, greek) {
         }
     }
     return true;
+}
+function removeNonDupes(bonds) {
+    var first = bonds[0];
+    for (var i = bonds.length-1; i >=1; i--) {
+        var b = bonds[i];
+        if (first.id != b.id) {
+            bonds.splice(i, 1);
+        }
+    }
 }
 function checkAllInBounds(el, boundChecker) {
     var withinBounds = true;

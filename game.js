@@ -41,6 +41,11 @@ function loadGame(config) {
         inBonds: config.beta.inBonds,
         mode: "Beta"
     };
+    window.reactorFeatures = {
+        bonderData: config.bonders || [],
+        bonders: [],
+        sensor: config.sensor
+    }
     if (alpha.outReqs) {
         alpha.outReqs.maxCount = alpha.outReqs.count;
     }
@@ -48,7 +53,6 @@ function loadGame(config) {
         beta.outReqs.maxCount = beta.outReqs.count;
     }
     window.mode = alpha;
-    window.reactorFeatures = [];
 
     makeBuildButtons(canvas);
 
@@ -70,11 +74,21 @@ function loadGame(config) {
             setSqListeners(sq);
             sq.gridx = i;
             sq.gridy = j;
-            if (i >= 4 && i <= 5 && j >= 3 && j <= 4) {
-                makeBonder(sq);
+            for (var bonder of reactorFeatures.bonderData) {
+                if (bonder.x == i && bonder.y == j) {
+                    makeBonder(sq);
+                }
+            }
+            if (reactorFeatures.sensor && reactorFeatures.sensor.x == i && reactorFeatures.sensor.y == j) {
+                makeSensor(sq);
             }
         }
     }
+    var reqDiv = get("reqs");
+    makeInOutBox(reqDiv, alpha.in, alpha.inBonds, alpha.mode, 0);
+    makeInOutBox(reqDiv, beta.in, beta.inBonds, beta.mode, 100);
+    makeInOutBox(reqDiv, alpha.outReqs.elements, alpha.outReqs.bonds, alpha.mode, 300);
+    makeInOutBox(reqDiv, beta.outReqs.elements, beta.outReqs.bonds, beta.mode, 400);
     document.addEventListener('keydown', (e) => {
         if (e.code === "KeyW") curSymbol = "Up";
         else if (e.code === "KeyS") curSymbol = "Down";
@@ -128,6 +142,40 @@ function loadGame(config) {
         }
     });
 }
+function makeInOutBox(container, elements, bonds, greekMode, offsetx) {
+    var syms = [];
+    for (var i = 0; i < 4; i++) {
+        for (var j = 0; j < 4; j++) {
+            var sq = makesq('div', container, 'square ' + greekMode, i * 20 + offsetx, j * 20, 20, 20);
+            if (elements) {
+                for (var el of elements) {
+                    if (i == el.x && j == el.y) {
+                        var sym = makesym('div', sq, 'element ' + el.name,
+                            0,
+                            0,
+                            20, 20, function () { });
+                        sym.gridx = i;
+                        sym.gridy = j;
+                        sym.innerHTML = el.name;
+                        sym.elId = el.id;
+                        syms.push(sym);
+                    }
+                }
+            }
+        }
+    }
+    if (bonds && bonds.length > 0) {
+        for (var sym of syms) {
+            var elBonds = bonds.filter(b => b.left == sym.elId);
+            for (var bond of elBonds) {
+                for (var i = 0; i < bond.count; i++) {
+                    sym.bonds.push(syms.filter(s => s.elId == bond.right)[0]);
+                }
+            }
+            adjustBondBars(sym, 3);
+        }
+    }
+}
 function makeBonder(sq) {
     var bonder = makesq('div', sq, 'bonder', 0, 0, (mapsizex / 10)-13, (mapsizey / 8)-12);
     bonder.gridx = sq.gridx;
@@ -139,8 +187,22 @@ function makeBonder(sq) {
     }
     bonder.ondragover = null;
     bonder.ondrop = null;
-    reactorFeatures.push(bonder);
-    bonder.innerHTML = "+ - <sup>" + reactorFeatures.length+"</sup>";
+    reactorFeatures.bonders.push(bonder);
+    bonder.innerHTML = "+ - <sup>" + reactorFeatures.bonders.length+"</sup>";
+}
+function makeSensor(sq) {
+    var sensor = makesq('div', sq, 'sensor', 0, 0, (mapsizex / 10) - 13, (mapsizey / 8) - 12);
+    sensor.gridx = sq.gridx;
+    sensor.gridy = sq.gridy;
+    sensor.type = "sensor";
+    sensor.draggable = true;
+    sensor.ondragstart = function () {
+        event.dataTransfer.setData("text", sensor.id);
+    }
+    sensor.ondragover = null;
+    sensor.ondrop = null;
+    sensor.innerHTML = "<div class='innersensor'>O</div>";
+    reactorFeatures.sensor = sensor;
 }
 function dropSymSq(sq) {
     return function (ev) {
@@ -161,43 +223,14 @@ function dropSymSq(sq) {
     }
 }
 function makeHeader(greek, greekSymbol) {
-    var ret = "In ";
+    var ret = "";
     ret += greekSymbol + " ";
-    if (greek.in.length > 0) {
-        var inElText = elTreeToText(greek.in, greek.inBonds);
-        ret += " [" + inElText + "]: location ";
-        for (var inEl of greek.in) {
-            ret += "(" + (inEl.location.x + 1) + ", " + (inEl.location.y + 1) + ") ";
-        }
-    }
     if (greek.outReqs.elements) {
-        var elText = elTreeToText(greek.outReqs.elements, greek.outReqs.bonds);
-        ret += ". Out [" + elText + "] : " + greek.outReqs.count;
+        ret += "outs remaining : " + greek.outReqs.count;
     }
     return ret;
 }
-function elTreeToText(elements, bonds) {
-    var cloneBonds = bonds ? deepClone(bonds) : [];
-    var elText = "", curEl = elements[0];
-    while (curEl) {
-        elText += curEl.name;
-        var bond = cloneBonds.filter(b => b.left == curEl.id || b.right == curEl.id)[0];
-        if (bond) {
-            var bondInd = cloneBonds.indexOf(bond);
-            cloneBonds.splice(bondInd, 1);
-            var nextBondEl = bond.left == curEl.id ? bond.right : bond.left;
-            curEl = elements.filter(e => e.id == nextBondEl)[0];
-            elText += " ";
-            if (bond.count == 1) elText += "-";
-            if (bond.count == 2) elText += "=";
-            if (bond.count == 3) elText += "<u>=</u>";
-            elText += " ";
-        } else {
-            curEl = null;
-        }
-    }
-    return elText;
-}
+
 function setSqListeners(sq) {
     sq.onclick = function () {
         var sym = window["symbol" + curSymbol].place(greek(), sq);
@@ -226,25 +259,38 @@ window.makePath = function(start, greek, greekMode) {
         curSym,
         newCurLoc = curLoc;
     deletePath(greek);
-    while (curLoc.x >= 0 && curLoc.x < 10 && curLoc.y >= 0 && curLoc.y < 8) {
-        var path, newCurLoc;
-        curSym = symAtCoords(greek.symbols, curLoc, "arrow");
-        if (curSym && curSym.arrow) {
-            curLoc.dir = curSym.direction;
+    function innerMakePath(curLoc, curSym) {
+        while (curLoc.x >= 0 && curLoc.x < 10 && curLoc.y >= 0 && curLoc.y < 8) {
+            curSym = symAtCoords(greek.symbols, curLoc, "arrow");
+            var sensSym = symAtCoords(greek.symbols, curLoc);
+            if (sensSym && sensSym.sensor) {
+                var cloneCurLoc = clone(curLoc);
+                cloneCurLoc.dir = sensSym.direction;
+                createPathEl(cloneCurLoc);
+                innerMakePath(cloneCurLoc, curSym);
+            }
+            if (curSym && curSym.arrow) {
+                curLoc.dir = curSym.direction;
+            }
+            if (hasThisPath(greek.paths, curLoc)) {
+                break;
+            }
+            createPathEl(curLoc);
         }
-        if (hasThisPath(greek.paths, curLoc)) {
-            break;
-        }
+    }
+    function createPathEl(curLoc) {
+        var path;
         if (curLoc.dir.x != 0)
             path = makesq('div', start.parentNode, 'blk line ' + greek.mode, curLoc.x * mapsizex / 10, curLoc.y * mapsizey / 8, mapsizex / 10, 10);
         else
             path = makesq('div', start.parentNode, 'blk line ' + greek.mode, curLoc.x * mapsizex / 10, curLoc.y * mapsizey / 8, 10, mapsizey / 8);
         curLoc.path = path;
-        newCurLoc = clone(curLoc);
+        var newCurLoc = clone(curLoc);
         greek.paths.push(newCurLoc);
         curLoc.x += curLoc.dir.x;
         curLoc.y += curLoc.dir.y;
     }
+    innerMakePath(curLoc, curSym, newCurLoc);
     function hasThisPath(paths, curLoc) {
         for (var path of paths) {
             if (curLoc.x == path.x && curLoc.y == path.y &&
@@ -299,12 +345,18 @@ function makeBuildButtons(canvas) {
         function () { curSymbol = "Out" }, 75);
     makebtns(greekMode, 'button', buttonContainer, 'Grab (g)', mapsizex + 10, buttonpos += 50, "Grab",
         function () { curSymbol = "Grab" });
-    makebtns(greekMode, 'button', buttonContainer, 'Bond (b)', mapsizex + 10, buttonpos += 50, "Bond",
-        function () { curSymbol = "Bond" });
+    if (reactorFeatures.bonderData && reactorFeatures.bonderData.length > 0) {
+        makebtns(greekMode, 'button', buttonContainer, 'Bond (b)', mapsizex + 10, buttonpos += 50, "Bond",
+            function () { curSymbol = "Bond" });
+    }
     makebtns(greekMode, 'button', buttonContainer, 'Rotate (t)', mapsizex + 10, buttonpos += 50, "Rotate",
         function () { curSymbol = "Rotate" });
     makebtns(greekMode, 'button', buttonContainer, 'Sync (y)', mapsizex + 10, buttonpos += 50, "Sync",
         function () { curSymbol = "Sync" });
+    if (reactorFeatures.sensor) {
+        makebtns(greekMode, 'button', buttonContainer, 'Sensor (n)', mapsizex + 10, buttonpos += 50, "Sensor",
+            function () { curSymbol = "Sensor" });
+    }
     makebtns(greekMode, 'button', buttonContainer, '^ (w)', mapsizex + 10, buttonpos += 50, "Up",
         function () { curSymbol = "Up" }, 40);
     makebtns(greekMode, 'button', buttonContainer, 'v (s)', mapsizex + 10 + 36, buttonpos, "Down",
@@ -414,6 +466,8 @@ function makesym(tagname, parent, clazz, left, top, width, height, butts) {
         showSymSpecificButtons(butts, ret);
         return false;
     }
+    ret.bondBars = [];
+    ret.bonds = [];
     ret.draggable = true;
     ret.ondragstart = function (event) {
         event.dataTransfer.setData("text", ret.id);
@@ -477,8 +531,8 @@ function checkCollisions() {
                 alert("Collision between elements!");
             }
         }
-        if (elLeft < 0 || elLeft + 42 > mapsizex ||
-            elTop < 0 || elTop + 42 > mapsizey) {
+        if (elLeft < -10 || elLeft + 42 > mapsizex ||
+            elTop < -10 || elTop + 42 > mapsizey) {
             stopGame(get('canvas'));
             alert("Element outside of reactor!");
         }
@@ -558,6 +612,7 @@ function activateRunTimer(greek, greekMode) {
         }
     } else if (greek.waldo.action == "counter" || greek.waldo.action == "clock") {
         rotateActionElements(greek);
+        //adjustBondBars
         greek.waldo.action = "move";
     } else if (greek.waldo.action == "sync") {
         var oppoGreek = greekOpposite(greek.mode);

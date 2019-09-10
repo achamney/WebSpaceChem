@@ -47,6 +47,7 @@ window.rotateMoveElements = function (greek, timeInterval) {
 window.rotateActionElements = function (greek) {
     var moveAngle = (greek.waldo.action == "counter" ? -Math.PI / 2 : Math.PI / 2);
     rotateElByAmount(greek.waldo, moveAngle, true);
+    updateBondBars(greek.waldo);
 }
 function rotateElByAmount(waldo, moveAngle, updateGrid) {
     var sx = waldo.gridx;
@@ -68,4 +69,24 @@ function rotateElByAmount(waldo, moveAngle, updateGrid) {
             element.style.top = mapsizey / 8 * newY + "px";
         });
     }
+}
+function updateBondBars(waldo) {
+    if (waldo.grabbedElement) {
+        var bonds = [];
+        traverseBonds(waldo.grabbedElement, function (element) {
+            for (var bond of element.bonds) {
+                if (!identicalBond(bonds, element, bond)) {
+                    var bCount = element.bonds.filter(b => b == bond).length;
+                    bonds.push({ count: bCount, left: element, right: bond });
+                }
+            }
+        });
+        for (var bond of bonds) {
+            adjustBondBars(bond.left, 1, bond.right);
+        }
+    }
+}
+function identicalBond(bonds, el1, el2) {
+    return bonds.filter(b => (b.left == el1 && b.right == el2) ||
+        (b.right == el1 && b.left == el2)).length > 0;
 }

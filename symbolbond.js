@@ -5,7 +5,7 @@
         sym.greek = greek.mode;
         sym.bond = "bond";
         sym.performAction = function (greekName, g) {
-            var bonders = reactorFeatures.filter(feat => feat.type == "bonder");
+            var bonders = reactorFeatures.bonders.filter(feat => feat.type == "bonder");
             var bonded = [];
             for (var b1 of bonders) {
                 for (var b2 of bonders) {
@@ -32,7 +32,7 @@
                                     makeParticle(b1e.gridx * mapsizex / 10 + 25, b1e.gridy * mapsizey / 8 + 25, "-", greek);
                                 }
                             }
-                            adjustBondBars(b1e);
+                            adjustBondBars(b1e, 1, b2e);
                             bonded.push({ b1: b1, b2: b2 });
                         }
                     }
@@ -43,33 +43,40 @@
         return sym;
     }
 }
-window.adjustBondBars = function (element) {
+window.adjustBondBars = function (element, divisor, secondEl) {
+    divisor = divisor || 1;
     for (var bondbar of element.bondBars) {
         delElement(bondbar);
     }
     element.bondBars = [];
+    if (secondEl) {
+        for (var bondbar of secondEl.bondBars) {
+            delElement(bondbar);
+        }
+        secondEl.bondBars = [];
+    }
     for (var bond of element.bonds) {
         var count = element.bonds.filter(b => b == bond).length;
-        var difx = bond.gridx - element.gridx;
-        var dify = bond.gridy - element.gridy;
-        var width = difx != 0 ? 20 : 5;
-        var height = dify != 0 ? 20 : 5; 
-        var spread = 7,
+        var difx = Math.round(bond.gridx - element.gridx);
+        var dify = Math.round(bond.gridy - element.gridy);
+        var width = difx != 0 ? 20 / divisor : 5 / divisor;
+        var height = dify != 0 ? 20 / divisor : 5 / divisor; 
+        var spread = 7 / divisor,
             startSpread = -count/2*spread/2;
         for (var i = 0; i < count; i++) {
             var bondBar = makesq("div", element, "bondbar", 0, 0, width, height);
             if (difx > 0) {
-                bondBar.style.left = "50px";
-                bondBar.style.top = (startSpread + 20) + "px";
+                bondBar.style.left = (50 / divisor) + "px";
+                bondBar.style.top = (startSpread + 20/divisor) + "px";
             } else if (difx < 0) {
-                bondBar.style.left = "50px";
-                bondBar.style.top = (startSpread + 20) + "px";
+                bondBar.style.left = (-15 / divisor) + "px";
+                bondBar.style.top = (startSpread + 20 / divisor) + "px";
             } else if (dify > 0) {
-                bondBar.style.top = "40px";
-                bondBar.style.left = (startSpread + 20) + "px";
+                bondBar.style.top = (50 / divisor) + "px";
+                bondBar.style.left = (startSpread + 20 / divisor) + "px";
             } else if (dify < 0) {
-                bondBar.style.top = "-50px";
-                bondBar.style.left = (startSpread + 20) + "px";
+                bondBar.style.top = (-20 / divisor) + "px";
+                bondBar.style.left = (startSpread + 20 / divisor) + "px";
             } 
             element.bondBars.push(bondBar);
             startSpread += spread;

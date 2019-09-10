@@ -4,7 +4,13 @@
 		width: 60px;
 		height: 60px;
 	}
-.square:hover {
+    .square.Alpha {
+        border: 1px solid #F00;
+    }
+    .square.Beta {
+        border: 1px solid #00F;
+    }
+    .square:hover {
 	outline: 2px solid black;
 }
 .blk {
@@ -178,6 +184,13 @@ button {
     padding: 11px;
     margin: 10px;
 }
+.square .element {
+    width: 15px;
+    height: 15px;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+}
 .bonder {
     border-radius: 25px;
     border: 5px solid #666;
@@ -185,8 +198,30 @@ button {
     padding-left: 4px;
     color: #666;
 }
+.sensor, .innersensor {
+    border-radius: 25px;
+    border: 5px solid #666;
+    font-size: 30px;
+    color: #666;
+    text-align: center;
+    padding: 1px;
+}
+.sensorSym input {
+    width: 50px;
+    position: relative;
+    top: 15px;
+    text-align: center;
+}
 .bondbar {
     background-color:black;
     position: absolute;
     z-index: -1;
+}
+#reqs {
+    position: relative;
+    top: -85px;
+    left: 250px;
+}
+#reqs .bondbar {
+    z-index: 1;
 }
