@@ -6,6 +6,8 @@
         setGrid(sym, sq, sq);
         sym.arrow = true;
         sym.direction = { x: -1, y: 0 };
+        sym.name = "Left";
+        sym.innerHTML = "&#9664;"
         return sym;
     }
 };
@@ -17,6 +19,8 @@ window.symbolRight = {
         setGrid(sym, sq, sq);
         sym.arrow = true;
         sym.direction = { x: 1, y: 0 };
+        sym.name = "Right";
+        sym.innerHTML = "&#9654;"
         return sym;
     }
 };
@@ -28,6 +32,8 @@ window.symbolUp = {
         setGrid(sym, sq, sq);
         sym.arrow = true;
         sym.direction = { x: 0, y: -1 };
+        sym.name = "Up";
+        sym.innerHTML = "&#9650;"
         return sym;
     }
 };
@@ -39,6 +45,8 @@ window.symbolDown = {
         setGrid(sym, sq, sq);
         sym.arrow = true;
         sym.direction = { x: 0, y: 1 };
+        sym.name = "Down";
+        sym.innerHTML = "&#9660;"
         return sym;
     }
 };
@@ -56,6 +64,35 @@ window.makeDelButton = function(greek) {
                 makePath(greek.startSymbol.parentSquare, greek);
             }
             clear(parent);
+            save();
         }, 100, 50);
     }
+}
+window.saveSymLeft = function (sym) {
+    var ret = saveBase(sym);
+    ret.direction = sym.direction;
+    ret.arrow = true;
+    return ret;
+};
+window.saveSymRight = function (sym) {
+    var ret = saveBase(sym);
+    ret.direction = sym.direction;
+    ret.arrow = true;
+    return ret;
+};
+window.saveSymUp = function (sym) {
+    var ret = saveBase(sym);
+    ret.direction = sym.direction;
+    ret.arrow = true;
+    return ret;
+};
+window.saveSymDown = function (sym) {
+    var ret = saveBase(sym);
+    ret.direction = sym.direction;
+    ret.arrow = true;
+    return ret;
+};
+window.symLoadUp = window.symLoadDown = window.symLoadLeft = window.symLoadRight = function (symEl, saveState) {
+    symEl.direction = saveState.direction;
+    symEl.arrow = saveState.arrow;
 }

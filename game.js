@@ -18,9 +18,20 @@
         var btn = makebtn("button", levels, level.name, 0, 0, setConfig(configs[levelId]));
         btn.style.width = "100%";
     }
+    window.levelName = "Water";
+    window.uniqueName = localStorage.getItem("uniqueName");
+    if (!uniqueName) {
+        window.uniqueName = Math.floor(Math.random() * 1000000);
+        localStorage.setItem("uniqueName", uniqueName);
+    }
+    $.get("https://api.myjson.com/bins/p370d", function (data, textStatus, jqXHR) {
+        window.levelWebData = data;
+    });
+    
 }
 function setConfig(config) {
     return function () {
+        window.levelName = config.name;
         get("config").value = JSON.stringify(config, null, 4);
     }
 }
@@ -65,7 +76,7 @@ function loadGame(config) {
     makesq('div', canvas, 'blk toprblock', mapsizex / 2 + mapsizex / 10, 0, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
     makesq('div', canvas, 'blk bottomlblock', 0, mapsizey / 2, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
     makesq('div', canvas, 'blk bottomrblock', mapsizex / 2 + mapsizex / 10, mapsizey / 2, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
-
+    window.levelSquares = [];
     for (var i = 0; i < 10; i++) {
 
         for (var j = 0; j < 8; j++) {
@@ -82,6 +93,7 @@ function loadGame(config) {
             if (reactorFeatures.sensor && reactorFeatures.sensor.x == i && reactorFeatures.sensor.y == j) {
                 makeSensor(sq);
             }
+            levelSquares.push(sq);
         }
     }
     var reqDiv = get("reqs");
@@ -99,6 +111,8 @@ function loadGame(config) {
         else if (e.code === "KeyR") curSymbol = "Start";
         else if (e.code === "KeyB") curSymbol = "Bond";
         else if (e.code === "KeyG") curSymbol = "Grab";
+        else if (e.code === "KeyY") curSymbol = "Sync";
+        else if (e.code === "KeyN") curSymbol = "Sensor";
         else if (e.code === "Tab") switchGreek(mode.mode, canvas);
         else if (e.code === "Space") {
             if (alpha.waldo && activateInterval) {
@@ -141,6 +155,7 @@ function loadGame(config) {
             }
         }
     });
+    load();
 }
 function makeInOutBox(container, elements, bonds, greekMode, offsetx) {
     var syms = [];
@@ -220,6 +235,7 @@ function dropSymSq(sq) {
         symbol.parentSquare = dropTarget;
         alpha.startSymbol && makePath(alpha.startSymbol.parentSquare, alpha);
         beta.startSymbol && makePath(beta.startSymbol.parentSquare, beta);
+        save();
     }
 }
 function makeHeader(greek, greekSymbol) {
@@ -239,8 +255,51 @@ function setSqListeners(sq) {
             if (greek().startSymbol) {
                 makePath(greek().startSymbol.parentSquare, greek());
             }
+            save();
         }
     }
+}
+
+function save() {
+    var saveState = {
+        alpha: saveGreek(alpha),
+        beta: saveGreek(beta)
+    };
+    localStorage.setItem(window.levelName, JSON.stringify(saveState));
+}
+function load() {
+    var saveStateJSON = localStorage.getItem(window.levelName);
+    var saveState = JSON.parse(saveStateJSON);
+    if (saveState) {
+        alpha.symbols = loadGreek(alpha, saveState.alpha);
+        beta.symbols = loadGreek(beta, saveState.beta);
+        alpha.startSymbol && makePath(alpha.startSymbol.parentSquare, alpha);
+        beta.startSymbol && makePath(beta.startSymbol.parentSquare, beta);
+    }
+}
+function saveGreek(greek) {
+    var symbols = [];
+    for (var sym of greek.symbols) {
+        var saveSym = window["saveSym" + sym.name](sym);
+        symbols.push(saveSym);
+    }
+    return symbols;
+}
+function loadGreek(greek, saveState) {
+    var symbols = [];
+    for (var sym of saveState) {
+        var sq = symAtCoords(levelSquares, { x: sym.gridx, y: sym.gridy }, false);
+        var symEl = window["symbol" + sym.name].place(greek, sq);
+        window["symLoad" + sym.name](symEl, sym);
+        if (symEl) {
+            symbols.push(symEl);
+        }
+    }
+    return symbols;
+}
+window.saveBase = function (sym) {
+    var ret = { gridx: sym.gridx, gridy: sym.gridy, name: sym.name };
+    return ret;
 }
 
 window.setGrid = function (sym, sq, parent) {
@@ -357,19 +416,19 @@ function makeBuildButtons(canvas) {
         makebtns(greekMode, 'button', buttonContainer, 'Sensor (n)', mapsizex + 10, buttonpos += 50, "Sensor",
             function () { curSymbol = "Sensor" });
     }
-    makebtns(greekMode, 'button', buttonContainer, '^ (w)', mapsizex + 10, buttonpos += 50, "Up",
+    makebtns(greekMode, 'button', buttonContainer, '&#9650; (w)', mapsizex + 10, buttonpos += 50, "Up",
         function () { curSymbol = "Up" }, 40);
-    makebtns(greekMode, 'button', buttonContainer, 'v (s)', mapsizex + 10 + 36, buttonpos, "Down",
+    makebtns(greekMode, 'button', buttonContainer, '&#9660; (s)', mapsizex + 10 + 36, buttonpos, "Down",
         function () { curSymbol = "Down" }, 40);
-    makebtns(greekMode, 'button', buttonContainer, '<- (a)', mapsizex + 10 + 37 + 36, buttonpos, "Left",
+    makebtns(greekMode, 'button', buttonContainer, '&#9664; (a)', mapsizex + 10 + 37 + 36, buttonpos, "Left",
         function () { curSymbol = "Left" }, 40);
-    makebtns(greekMode, 'button', buttonContainer, '-> (d)', mapsizex + 10 + 37 + 36 + 37, buttonpos, "Right",
+    makebtns(greekMode, 'button', buttonContainer, '&#9654; (d)', mapsizex + 10 + 37 + 36 + 37, buttonpos, "Right",
         function () { curSymbol = "Right" }, 40);
     makebtns(greekMode, 'button', buttonContainer, 'Switch (tab)', mapsizex + 10, buttonpos += 50, "",
         function () {
             switchGreek(greekMode, canvas);
         });
-    makebtn('button', buttonContainer, 'Simulate', mapsizex + 10, buttonpos += 60, function () {
+    makebtn('button', buttonContainer, 'Run', mapsizex + 10, buttonpos += 60, function () {
         makeRunButtons(canvas);
         run(canvas);
     });
@@ -547,10 +606,37 @@ function checkWin() {
     if (beta.outReqs.count && beta.outReqs.count  > 0) {
         winGame = false;
     }
-    
     if (winGame) {
-        alert("Mission successful. Total symbols: [" + (alpha.symbols.length + beta.symbols.length) +
-            "]. Total cycles: [" + cycles + "]");
+        var symbols = alpha.symbols.length + beta.symbols.length;
+        levelWebData[levelName] = levelWebData[levelName] || {};
+        var records = levelWebData[levelName][uniqueName] || {};
+        var recordString = "";
+        if (records.symbols) {
+            recordString += ". Previous best symbols: [" + records.symbols +
+                "]. Previous best cycles: [" + records.cycles + "]";
+            if (symbols < records.symbols) {
+                records.symbols = symbols;
+            }
+            if (cycles < records.cycles) {
+                records.cycles = cycles;
+            }
+        } else {
+            records.cycles = cycles;
+            records.symbols = symbols;
+        }
+        levelWebData[levelName][uniqueName] = records;
+        alert("Mission successful. Total symbols: [" + (symbols) +
+            "]. Total cycles: [" + cycles + "]" + recordString);
+        $.ajax({
+            url: "https://api.myjson.com/bins/p370d",
+            type: "PUT",
+            data: JSON.stringify(levelWebData),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data, textStatus, jqXHR) {
+
+            }
+        }); 
         stopGame(get("canvas"));
     }
 }

@@ -4,6 +4,7 @@
         
         var sym = makesym('div', sq, 'symbol rotate clock ' + greek.mode, 0, 0, 50, 50, createRotateSubButtons(greek));
         sym.direction = "clock";
+        sym.name = "Rotate";
         sym.performAction = function () {
             greek.waldo.action = sym.direction;
             greek.waldo.rotatePercent = 0;
@@ -22,11 +23,13 @@ function createRotateSubButtons(greek) {
             selSym.classList.remove(selSym.direction);
             selSym.direction = "clock";
             selSym.classList.add(selSym.direction);
+            save();
         }, 100, 50));
         butList.push(makebtn('button', parent, 'Counter Clockwise', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
             selSym.classList.remove(selSym.direction);
             selSym.direction = "counter";
             selSym.classList.add(selSym.direction);
+            save();
         }, 100, 50));
         butList.push(makebtn('button', parent, 'Delete', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
             delElement(selSym);
@@ -35,6 +38,7 @@ function createRotateSubButtons(greek) {
             if (~symInd) {
                 greek.symbols.splice(symInd, 1);
             }
+            save();
         }, 100, 50));
     };
 }
@@ -90,3 +94,15 @@ function identicalBond(bonds, el1, el2) {
     return bonds.filter(b => (b.left == el1 && b.right == el2) ||
         (b.right == el1 && b.left == el2)).length > 0;
 }
+window.saveSymRotate = function (sym) {
+    var ret = saveBase(sym);
+    ret.direction = sym.direction;
+    return ret;
+};
+window.symLoadRotate = function (symEl, saveState) {
+    if (saveState.direction != symEl.direction) {
+        symEl.classList.remove(symEl.direction);
+        symEl.classList.add(saveState.direction);
+    }
+    symEl.direction = saveState.direction;
+};

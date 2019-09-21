@@ -14,6 +14,7 @@
         };
         sym.sensor = true;
         sym.direction = { x: -1, y: 0 };
+        sym.name = "Sensor";
         setGrid(sym, sq, sq);
         var elInput = make('input', sym, '');
         sym.input = elInput;
@@ -48,18 +49,22 @@ function makeSensorButtons(greek) {
         butList.push(makebtn('button', parent, 'Left', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
             selSym.direction = { x: -1, y: 0 };
             makePath(greek.startSymbol.parentSquare, greek);
+            save();
         }, 100, 50));
         butList.push(makebtn('button', parent, 'Right', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
             selSym.direction = { x: 1, y: 0 };
             makePath(greek.startSymbol.parentSquare, greek);
+            save();
         }, 100, 50));
         butList.push(makebtn('button', parent, 'Up', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
             selSym.direction = { x: 0, y: -1 };
             makePath(greek.startSymbol.parentSquare, greek);
+            save();
         }, 100, 50));
         butList.push(makebtn('button', parent, 'Down', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
             selSym.direction = { x: 0, y: 1 };
             makePath(greek.startSymbol.parentSquare, greek);
+            save();
         }, 100, 50));
         butList.push(makebtn('button', parent, 'Delete', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
             delElement(selSym);
@@ -69,6 +74,18 @@ function makeSensorButtons(greek) {
                 greek.symbols.splice(symInd, 1);
             }
             makePath(greek.startSymbol.parentSquare, greek);
+            save();
         }, 100, 50));
     };
 }
+window.saveSymSensor = function (sym) {
+    var ret = saveBase(sym);
+    ret.sensor = true;
+    ret.direction = sym.direction;
+    ret.input = sym.input.value;
+    return ret;
+};
+window.symLoadSensor = function (symEl, saveState) {
+    symEl.direction = saveState.direction;
+    symEl.input.value = saveState.input;
+};

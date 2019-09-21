@@ -189,6 +189,34 @@ window.configs = [
         bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }]
     },
     {
+        "name": "Sleepless on Sernimir IV",
+        "alpha": {
+            "in": [{
+                "name": "O", "id": "o1", "x": 1, "y": 1,
+                "probability": 100, "bonds": ["c1"]
+            }, {
+                "name": "C", "id": "c1", "x": 1, "y": 2,
+                "probability": 100, "bonds": ["o1"]
+            }],
+            "inBonds": [{ "count": 2, "left": "o1", "right": "c1" }],
+            "outReqs": {
+                "count": 10,
+                "elements": [{ "name": "H", "id": "h1", x: 0, y: 2 }, { "name": "C", "id": "c1", x: 1, y: 2 }, { "name": "H", "id": "h2", x: 2, y: 2 },
+                    { "name": "O", "id": "o1", x: 1, y: 1 }],
+                "bonds": [{ "count": 2, "left": "c1", "right": "o1" }, { "count": 1, "left": "c1", "right": "h1" }, { "count": 1, "left": "c1", "right": "h2" }]
+            }
+        }, "beta": {
+            "in": [{
+                "name": "H", "id": "h1", "x": 1, "y": 1,
+                "probability": 100, "bonds": []
+            }],
+            "inBonds": [],
+            "outReqs": {
+            }
+        },
+        bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }]
+    },
+    {
         "name": "Danopth: Every day is the First Day",
         "alpha": {
             "in": [{

@@ -3,6 +3,7 @@
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
         var sym = makesym('div', sq, 'symbol in In' + greek.mode + ' ' + greek.mode, 0, 0, 50, 50, createInSubButtons(greek));
         sym.greek = greek.mode;
+        sym.name = "In";
         sym.performAction = makePerfActionFn(sym, greek);
         setGrid(sym, sq, sq);
         return sym;
@@ -71,6 +72,7 @@ function createInSubButtons(greek) {
                 selSym.classList.remove("InAlpha");
                 clear(parent);
                 createInSubButtons();
+                save();
             }, 100, 50));
         } else {
             butList.push(makebtn('button', parent, 'In α', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
@@ -79,6 +81,7 @@ function createInSubButtons(greek) {
                 selSym.classList.add("InAlpha");
                 clear(parent);
                 createInSubButtons();
+                save();
             }, 100, 50));
         }
         butList.push(makebtn('button', parent, 'Delete', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
@@ -88,6 +91,19 @@ function createInSubButtons(greek) {
             if (~symInd) {
                 greek.symbols.splice(symInd, 1);
             }
+            save();
         }, 100, 50));
     }
 }
+window.saveSymIn = function (sym) {
+    var ret = saveBase(sym);
+    ret.greek = sym.greek;
+    return ret;
+};
+window.symLoadIn = function (symEl, saveState) {
+    symEl.greek = saveState.greek;
+    if (symEl.greek != "Alpha") {
+        symEl.classList.add("InBeta");
+        symEl.classList.remove("InAlpha");
+    }
+};

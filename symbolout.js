@@ -3,6 +3,7 @@
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
         var sym = makesym('div', sq, 'symbol out Out' + greek.mode + ' ' + greek.mode, 0, 0, 50, 50, createOutSubButtons(greek));
         sym.greek = greek.mode;
+        sym.name = "Out";
         sym.performAction = function (greekName, g) {
             var outed = false;
             for (var i = elements.childNodes.length - 1; i >=0; i--) {
@@ -124,6 +125,7 @@ function createOutSubButtons(greek) {
                 selSym.classList.remove("OutAlpha");
                 clear(parent);
                 createOutSubButtons();
+                save();
             }, 100, 50));
         } else {
             butList.push(makebtn('button', parent, 'Out α', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
@@ -132,6 +134,7 @@ function createOutSubButtons(greek) {
                 selSym.classList.add("OutAlpha");
                 clear(parent);
                 createOutSubButtons();
+                save();
             }, 100, 50));
         }
         butList.push(makebtn('button', parent, 'Delete', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
@@ -141,6 +144,19 @@ function createOutSubButtons(greek) {
             if (~symInd) {
                 greek.symbols.splice(symInd, 1);
             }
+            save();
         }, 100, 50));
     }
 }
+window.saveSymOut = function (sym) {
+    var ret = saveBase(sym);
+    ret.greek = sym.greek;
+    return ret;
+};
+window.symLoadOut = function (symEl, saveState) {
+    symEl.greek = saveState.greek;
+    if (symEl.greek != "Alpha") {
+        symEl.classList.add("OutBeta");
+        symEl.classList.remove("OutAlpha");
+    }
+};

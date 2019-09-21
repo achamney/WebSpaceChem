@@ -4,6 +4,7 @@
         var sym = makesym('div', sq, 'symbol bond ' + greek.mode, 0, 0, 50, 50, createBondSubButtons(greek));
         sym.greek = greek.mode;
         sym.bond = "bond";
+        sym.name = "Bond";
         sym.performAction = function (greekName, g) {
             var bonders = reactorFeatures.bonders.filter(feat => feat.type == "bonder");
             var bonded = [];
@@ -105,11 +106,13 @@ function createBondSubButtons(greek) {
             selSym.classList.remove(selSym.bond);
             selSym.bond = "bond";
             selSym.classList.add(selSym.bond);
+            save();
         }, 100, 50));
         butList.push(makebtn('button', parent, 'Bond -', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
             selSym.classList.remove(selSym.bond);
             selSym.bond = "debond";
             selSym.classList.add(selSym.bond);
+            save();
         }, 100, 50));
         butList.push(makebtn('button', parent, 'Delete', mapsizex / 2 + (xoffset += 100), mapsizey, function () {
             delElement(selSym);
@@ -118,6 +121,7 @@ function createBondSubButtons(greek) {
             if (~symInd) {
                 greek.symbols.splice(symInd, 1);
             }
+            save();
         }, 100, 50));
     }
 }
@@ -146,3 +150,17 @@ function adjacent(el1, el2) {
     }
     return false;
 }
+window.saveSymBond = function (sym) {
+    var ret = saveBase(sym);
+    ret.greek = sym.greek;
+    ret.bond = sym.bond;
+    return ret;
+};
+window.symLoadBond = function (symEl, saveState) {
+    symEl.greek = saveState.greek;
+    if (saveState.bond == "debond") {
+        symEl.classList.remove(symEl.bond);
+        symEl.classList.add(saveState.bond);
+    }
+    symEl.bond = saveState.bond;
+};
