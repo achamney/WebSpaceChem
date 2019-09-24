@@ -66,8 +66,8 @@ function rotateElByAmount(waldo, moveAngle, updateGrid) {
                 newX = Math.cos(newAngle) * distance + sx,
                 newY = Math.sin(newAngle) * distance + sy;
             if (updateGrid) {
-                element.gridx = newX;
-                element.gridy = newY;
+                element.gridx = Math.round(newX);
+                element.gridy = Math.round(newY);
             }
             element.style.left = mapsizex / 10 * newX + "px";
             element.style.top = mapsizey / 8 * newY + "px";

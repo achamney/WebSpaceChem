@@ -6,6 +6,15 @@
         sym.name = "Sync";
         sym.performAction = function () {
             greek.waldo.action = "sync";
+            var oppoGreek = greekOpposite(greek.mode);
+            if (oppoGreek.waldo.action == "sync") {
+                greek.waldo.action = "move";
+                if (greek.mode == "Beta") {
+                    oppoGreek.waldo.action = "move";
+                } else {
+                    setTimeout(function () { oppoGreek.waldo.action = "move"; });
+                }
+            }
         }
         setGrid(sym, sq, sq);
         return sym;

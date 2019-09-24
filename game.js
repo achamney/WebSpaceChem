@@ -1,17 +1,5 @@
 ﻿window.onload = function () {
-    var beginButton = get("begin");
-    beginButton.onclick = function () {
-        var config = get("config");
-        try {
-            var configJson = JSON.parse(config.value);
-            beginButton.style.display = "none";
-            config.style.display = "none";
-            get("configContainer").style.display = "none";
-            loadGame(configJson);
-        } catch (e) {
-            alert("Error parsing configuration file, try again");
-        }
-    }
+    get("begin").onclick = beginButtonFn;
     var levels = get("levels");
     for (var levelId in configs) {
         var level = configs[levelId];
@@ -19,15 +7,50 @@
         btn.style.width = "100%";
     }
     window.levelName = "Water";
+    var uniqueNameInput = get("uniqueNameInput");
     window.uniqueName = localStorage.getItem("uniqueName");
-    if (!uniqueName) {
-        window.uniqueName = Math.floor(Math.random() * 1000000);
-        localStorage.setItem("uniqueName", uniqueName);
-    }
+    uniqueNameInput.value = uniqueName;
     $.get("https://api.myjson.com/bins/p370d", function (data, textStatus, jqXHR) {
         window.levelWebData = data;
+        if (!uniqueName) {
+            window.uniqueName = Math.floor(Math.random() * 1000000)+"";
+            localStorage.setItem("uniqueName", uniqueName);
+            data.uniqueNames = data.uniqueNames || [];
+            data.uniqueNames.push(uniqueName);
+            updateWebData();
+            uniqueNameInput.value = uniqueName;
+        }
     });
     
+}
+window.changeUniqueName = function (un) {
+    var newName = un.value;
+    if (levelWebData.uniqueNames.indexOf(uniqueName)>=0) {
+        levelWebData.uniqueNames.splice(levelWebData.uniqueNames.indexOf(uniqueName), 1);
+        levelWebData.uniqueNames.push(newName);
+        localStorage.setItem("uniqueName", newName);
+        for (var level of configs) {
+            if (levelWebData[level.name][uniqueName]) {
+                levelWebData[level.name][newName] = levelWebData[level.name][uniqueName];
+                delete levelWebData[level.name][uniqueName];
+            }
+        }
+        uniqueName = newName;
+        updateWebData();
+    }
+}
+function beginButtonFn() {
+    var beginButton = get("begin");
+    var config = get("config");
+    try {
+        var configJson = JSON.parse(config.value);
+        beginButton.style.display = "none";
+        config.style.display = "none";
+        get("configContainer").style.display = "none";
+        loadGame(configJson);
+    } catch (e) {
+        alert("Error parsing configuration file, try again");
+    }
 }
 function setConfig(config) {
     return function () {
@@ -55,7 +78,8 @@ function loadGame(config) {
     window.reactorFeatures = {
         bonderData: config.bonders || [],
         bonders: [],
-        sensor: config.sensor
+        sensor: config.sensor,
+        fuser: config.fuser
     }
     if (alpha.outReqs) {
         alpha.outReqs.maxCount = alpha.outReqs.count;
@@ -73,9 +97,13 @@ function loadGame(config) {
     headerAlpha.innerHTML = makeHeader(alpha, "α");
 
     makesq('div', canvas, 'blk toplblock', 0, 0, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
-    makesq('div', canvas, 'blk toprblock', mapsizex / 2 + mapsizex / 10, 0, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
+    if (alpha.outReqs && alpha.outReqs.size == "large") {
+        makesq('div', canvas, 'blk toprblock', mapsizex / 2 + mapsizex / 10, 0, mapsizex / 2 - mapsizex / 10, mapsizey);
+    } else {
+        makesq('div', canvas, 'blk toprblock', mapsizex / 2 + mapsizex / 10, 0, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
+        makesq('div', canvas, 'blk bottomrblock', mapsizex / 2 + mapsizex / 10, mapsizey / 2, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
+    }
     makesq('div', canvas, 'blk bottomlblock', 0, mapsizey / 2, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
-    makesq('div', canvas, 'blk bottomrblock', mapsizex / 2 + mapsizex / 10, mapsizey / 2, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
     window.levelSquares = [];
     for (var i = 0; i < 10; i++) {
 
@@ -93,14 +121,19 @@ function loadGame(config) {
             if (reactorFeatures.sensor && reactorFeatures.sensor.x == i && reactorFeatures.sensor.y == j) {
                 makeSensor(sq);
             }
+            if (reactorFeatures.fuser && reactorFeatures.fuser.x == i && reactorFeatures.fuser.y == j) {
+                makeFuser(sq);
+            }
             levelSquares.push(sq);
         }
     }
     var reqDiv = get("reqs");
-    makeInOutBox(reqDiv, alpha.in, alpha.inBonds, alpha.mode, 0);
-    makeInOutBox(reqDiv, beta.in, beta.inBonds, beta.mode, 100);
-    makeInOutBox(reqDiv, alpha.outReqs.elements, alpha.outReqs.bonds, alpha.mode, 300);
-    makeInOutBox(reqDiv, beta.outReqs.elements, beta.outReqs.bonds, beta.mode, 400);
+    var extra = makeInBox(reqDiv, alpha.in, alpha.mode, 0);
+    makeInBox(reqDiv, beta.in, beta.mode, 100 + extra);
+    makeInOutBox(reqDiv, alpha.outReqs.elements, alpha.outReqs.bonds, alpha.mode, 300, alpha.outReqs.size);
+    if (!alpha.outReqs.size) {
+        makeInOutBox(reqDiv, beta.outReqs.elements, beta.outReqs.bonds, beta.mode, 400);
+    }
     document.addEventListener('keydown', (e) => {
         if (e.code === "KeyW") curSymbol = "Up";
         else if (e.code === "KeyS") curSymbol = "Down";
@@ -156,10 +189,27 @@ function loadGame(config) {
         }
     });
     load();
+    makeBottomButtons();
+    makeDragSelectListeners();
 }
-function makeInOutBox(container, elements, bonds, greekMode, offsetx) {
+function makeInBox(container, inProbs, greekMode, offsetx) {
+    var extra = 0;
+    for (var prob of inProbs) {
+        if (prob.probability != 100) {
+            var percent = make("div", container, "");
+            percent.innerHTML = prob.probability + "%";
+            percent.style.position = "absolute";
+            percent.style.left = (offsetx+extra - 20) + "px";
+        }
+        makeInOutBox(container, prob.elements, prob.bonds, greekMode, offsetx + extra);
+        extra += 100;
+    }
+    return extra - 100;
+}
+function makeInOutBox(container, elements, bonds, greekMode, offsetx, size) {
     var syms = [];
-    for (var i = 0; i < 4; i++) {
+    var extra = size == "large" ? 4 : 0;
+    for (var i = 0; i < 4 + extra; i++) {
         for (var j = 0; j < 4; j++) {
             var sq = makesq('div', container, 'square ' + greekMode, i * 20 + offsetx, j * 20, 20, 20);
             if (elements) {
@@ -191,6 +241,43 @@ function makeInOutBox(container, elements, bonds, greekMode, offsetx) {
         }
     }
 }
+function makeBottomButtons() {
+    var buttonContainer = get('canvas'),
+        buttonpos = -100;
+    makebtn('button', buttonContainer, 'Back', -50 + (buttonpos += 155), mapsizey + 60, function () {
+        location.reload();
+    }).style.width = "50px";
+    makebtn('button', buttonContainer, 'Clear All', -50 + (buttonpos += 55), mapsizey + 60, function () {
+        deleteAll(alpha);
+        deleteAll(beta);
+        save();
+    });
+    makebtn('button', buttonContainer, 'Swap Waldo Colors', -50 + (buttonpos += 155), mapsizey + 60, function () {
+        var symswap = alpha.symbols;
+        alpha.symbols = beta.symbols;
+        beta.symbols = symswap;
+        save();
+        load();
+    });
+    makebtn('button', buttonContainer, 'Undo', -50 + (buttonpos += 155), mapsizey + 60, function () {
+        var lastSave = localStorage.getItem(window.levelName + "last");
+        lastSave--;
+        if (lastSave < 1) {
+            lastSave = 19;
+        }
+        localStorage.setItem(window.levelName + "last", lastSave);
+        load();
+    }).style.width = "50px";
+    makebtn('button', buttonContainer, 'Redo', -50 + (buttonpos += 55), mapsizey + 60, function () {
+        var lastSave = localStorage.getItem(window.levelName + "last");
+        lastSave++;
+        if (lastSave >= 20) {
+            lastSave = 1;
+        }
+        localStorage.setItem(window.levelName + "last", lastSave);
+        load();
+    }).style.width = "50px";
+}
 function makeBonder(sq) {
     var bonder = makesq('div', sq, 'bonder', 0, 0, (mapsizex / 10)-13, (mapsizey / 8)-12);
     bonder.gridx = sq.gridx;
@@ -219,6 +306,20 @@ function makeSensor(sq) {
     sensor.innerHTML = "<div class='innersensor'>O</div>";
     reactorFeatures.sensor = sensor;
 }
+function makeFuser(sq) {
+    var fuser = makesq('div', sq, 'sensor', 0, 0, (mapsizex / 5) - 13, (mapsizey / 8) - 12);
+    fuser.gridx = sq.gridx;
+    fuser.gridy = sq.gridy;
+    fuser.type = "fuser";
+    fuser.draggable = true;
+    fuser.ondragstart = function () {
+        event.dataTransfer.setData("text", fuser.id);
+    }
+    fuser.ondragover = null;
+    fuser.ondrop = null;
+    fuser.innerHTML = "<div class='innerfuser'>&#9654;</div><div class='innerfuser'>O</div>";
+    reactorFeatures.fuser = fuser;
+}
 function dropSymSq(sq) {
     return function (ev) {
         ev.preventDefault();
@@ -229,14 +330,39 @@ function dropSymSq(sq) {
             dropTarget = dropTarget.parentNode;
         }
         if (!dropTarget) return;
-        dropTarget.appendChild(symbol);
-        symbol.gridx = dropTarget.gridx;
-        symbol.gridy = dropTarget.gridy;
-        symbol.parentSquare = dropTarget;
-        alpha.startSymbol && makePath(alpha.startSymbol.parentSquare, alpha);
-        beta.startSymbol && makePath(beta.startSymbol.parentSquare, beta);
-        save();
+        if (symbol.nodeName == "BUTTON") {
+            curSymbol = symbol.name;
+            $(dropTarget).click();
+            deselBtns(get("buttonContainer"));
+            symbol.classList.add("selected");
+        } else {
+            if (!symbol.selected) {
+                dropSymbolOnSquare(dropTarget, symbol);
+            } else {
+                var xdiff = dropTarget.gridx - symbol.gridx,
+                    ydiff = dropTarget.gridy - symbol.gridy,
+                    combinedSym = alpha.symbols.concat(beta.symbols);
+                for (var sym of combinedSym) {
+                    if (sym.selected) {
+                        var diffDropSq = symAtCoords(levelSquares, {
+                            x: sym.gridx + xdiff,
+                            y: sym.gridy + ydiff
+                        });
+                        dropSymbolOnSquare(diffDropSq, sym);
+                    }
+                }
+            }
+        }
     }
+}
+function dropSymbolOnSquare(dropTarget, symbol) {
+    dropTarget.appendChild(symbol);
+    symbol.gridx = dropTarget.gridx;
+    symbol.gridy = dropTarget.gridy;
+    symbol.parentSquare = dropTarget;
+    alpha.startSymbol && makePath(alpha.startSymbol.parentSquare, alpha);
+    beta.startSymbol && makePath(beta.startSymbol.parentSquare, beta);
+    save();
 }
 function makeHeader(greek, greekSymbol) {
     var ret = "";
@@ -260,21 +386,86 @@ function setSqListeners(sq) {
     }
 }
 
-function save() {
+window.save = function() {
     var saveState = {
         alpha: saveGreek(alpha),
-        beta: saveGreek(beta)
+        beta: saveGreek(beta),
+        reactorFeatures: saveReactorFeatures()
     };
-    localStorage.setItem(window.levelName, JSON.stringify(saveState));
+    window.saveNumber = window.saveNumber || 0;
+    saveNumber++;
+    if (saveNumber >= 20) {
+        saveNumber = 1;
+    }
+    localStorage.setItem(window.levelName + (saveNumber), JSON.stringify(saveState));
+    localStorage.setItem(levelName + "last", saveNumber);
+}
+function saveReactorFeatures() {
+    var saveFeatures = { bonders: []};
+    if (reactorFeatures.bonders) {
+        for (var bonder of reactorFeatures.bonders) {
+            saveFeatures.bonders.push({ gridx: bonder.gridx, gridy: bonder.gridy });
+        }
+    }
+    if (reactorFeatures.sensor) {
+        saveFeatures.sensor = {
+            gridx: reactorFeatures.sensor.gridx,
+            gridy: reactorFeatures.sensor.gridy
+        };
+    }
+    if (reactorFeatures.fuser) {
+        saveFeatures.fuser = {
+            gridx: reactorFeatures.fuser.gridx,
+            gridy: reactorFeatures.fuser.gridy
+        };
+    }
+    return saveFeatures;
+}
+function deleteAll(greek) {
+    for (var i = greek.symbols.length - 1; i >= 0; i--) {
+        var sym = greek.symbols[i];
+        delElement(sym);
+        greek.symbols.splice(i, 1);
+    }
+    deletePath(greek);
+    greek.startSymbol = null;
 }
 function load() {
-    var saveStateJSON = localStorage.getItem(window.levelName);
+    var lastSave = localStorage.getItem(window.levelName + "last");
+    window.saveNumber = parseInt(lastSave);
+    var saveStateJSON = localStorage.getItem(window.levelName + lastSave);
     var saveState = JSON.parse(saveStateJSON);
+    deleteAll(alpha);
+    deleteAll(beta);
     if (saveState) {
         alpha.symbols = loadGreek(alpha, saveState.alpha);
         beta.symbols = loadGreek(beta, saveState.beta);
         alpha.startSymbol && makePath(alpha.startSymbol.parentSquare, alpha);
         beta.startSymbol && makePath(beta.startSymbol.parentSquare, beta);
+        saveState.reactorFeatures = saveState.reactorFeatures || {};
+        if (saveState.reactorFeatures.bonders) {
+            for (var bonderId in saveState.reactorFeatures.bonders) {
+                var dropTarget = symAtCoords(levelSquares, {
+                    x: saveState.reactorFeatures.bonders[bonderId].gridx,
+                    y: saveState.reactorFeatures.bonders[bonderId].gridy
+                });
+                dropSymbolOnSquare(dropTarget, reactorFeatures.bonders[bonderId]);
+            }
+        }
+        if (saveState.reactorFeatures.sensor) {
+            var dropTarget = symAtCoords(levelSquares, {
+                x: saveState.reactorFeatures.sensor.gridx,
+                y: saveState.reactorFeatures.sensor.gridy
+            });
+            dropSymbolOnSquare(dropTarget, reactorFeatures.sensor);
+        }
+        if (saveState.reactorFeatures.fuser) {
+            var dropTarget = symAtCoords(levelSquares, {
+                x: saveState.reactorFeatures.fuser.gridx,
+                y: saveState.reactorFeatures.fuser.gridy
+            });
+            dropSymbolOnSquare(dropTarget, reactorFeatures.fuser);
+        }
     }
 }
 function saveGreek(greek) {
@@ -402,7 +593,7 @@ function makeBuildButtons(canvas) {
         function () { curSymbol = "In"; }, 75);
     makebtns(greekMode, 'button', buttonContainer, 'Out (o)', mapsizex + 85, buttonpos, "Out",
         function () { curSymbol = "Out" }, 75);
-    makebtns(greekMode, 'button', buttonContainer, 'Grab (g)', mapsizex + 10, buttonpos += 50, "Grab",
+    makebtns(greekMode, 'button', buttonContainer, 'Grab/Drop (g)', mapsizex + 10, buttonpos += 50, "Grab",
         function () { curSymbol = "Grab" });
     if (reactorFeatures.bonderData && reactorFeatures.bonderData.length > 0) {
         makebtns(greekMode, 'button', buttonContainer, 'Bond (b)', mapsizex + 10, buttonpos += 50, "Bond",
@@ -415,6 +606,10 @@ function makeBuildButtons(canvas) {
     if (reactorFeatures.sensor) {
         makebtns(greekMode, 'button', buttonContainer, 'Sensor (n)', mapsizex + 10, buttonpos += 50, "Sensor",
             function () { curSymbol = "Sensor" });
+    }
+    if (reactorFeatures.fuser) {
+        makebtns(greekMode, 'button', buttonContainer, 'Fuse (f)', mapsizex + 10, buttonpos += 50, "Fuse",
+            function () { curSymbol = "Fuse" });
     }
     makebtns(greekMode, 'button', buttonContainer, '&#9650; (w)', mapsizex + 10, buttonpos += 50, "Up",
         function () { curSymbol = "Up" }, 40);
@@ -492,10 +687,14 @@ function stopGame(canvas) {
 function makebtns(greekMode, tagname, parent, text, left, top, name, funct, width, height) {
     var ret = makebtn(tagname, parent, text, left, top, funct, width, height);
     ret.classList.add('btn' + greekMode);
+    ret.draggable = true;
     ret.onclick = function () {
         deselBtns(get("buttonContainer"));
         ret.classList.add("selected");
         funct();
+    }
+    ret.ondragstart = function (event) {
+        event.dataTransfer.setData("text", ret.id);
     }
     if (curSymbol == name) {
         ret.classList.add("selected");
@@ -529,6 +728,9 @@ function makesym(tagname, parent, clazz, left, top, width, height, butts) {
     ret.bonds = [];
     ret.draggable = true;
     ret.ondragstart = function (event) {
+        if (!ret.selected) {
+            deselectAll();
+        }
         event.dataTransfer.setData("text", ret.id);
     }
     return ret;
@@ -563,6 +765,10 @@ function run(canvas, moveTime, symbolTime) {
 
     // ActivateSymbol
     window.activateInterval = window.setInterval(function () {
+        if (alpha.startSymbol)
+            activateMoveRunTimer(alpha, "Alpha");
+        if (beta.startSymbol)
+            activateMoveRunTimer(beta, "Beta");
         if (alpha.startSymbol)
             activateRunTimer(alpha, "Alpha");
         if (beta.startSymbol)
@@ -608,37 +814,44 @@ function checkWin() {
     }
     if (winGame) {
         var symbols = alpha.symbols.length + beta.symbols.length;
-        levelWebData[levelName] = levelWebData[levelName] || {};
-        var records = levelWebData[levelName][uniqueName] || {};
-        var recordString = "";
-        if (records.symbols) {
-            recordString += ". Previous best symbols: [" + records.symbols +
-                "]. Previous best cycles: [" + records.cycles + "]";
-            if (symbols < records.symbols) {
+        clearIntervals();
+        $.get("https://api.myjson.com/bins/p370d", function (data, textStatus, jqXHR) {
+            window.levelWebData = data;
+            levelWebData[levelName] = levelWebData[levelName] || {};
+            var records = levelWebData[levelName][uniqueName] || {};
+            var recordString = "";
+            if (records.symbols) {
+                recordString += ". Previous best symbols: [" + records.symbols +
+                    "]. Previous best cycles: [" + records.cycles + "]";
+                if (symbols < records.symbols) {
+                    records.symbols = symbols;
+                }
+                if (cycles < records.cycles) {
+                    records.cycles = cycles;
+                }
+            } else {
+                records.cycles = cycles;
                 records.symbols = symbols;
             }
-            if (cycles < records.cycles) {
-                records.cycles = cycles;
-            }
-        } else {
-            records.cycles = cycles;
-            records.symbols = symbols;
-        }
-        levelWebData[levelName][uniqueName] = records;
-        alert("Mission successful. Total symbols: [" + (symbols) +
-            "]. Total cycles: [" + cycles + "]" + recordString);
-        $.ajax({
-            url: "https://api.myjson.com/bins/p370d",
-            type: "PUT",
-            data: JSON.stringify(levelWebData),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function (data, textStatus, jqXHR) {
-
-            }
-        }); 
-        stopGame(get("canvas"));
+            levelWebData[levelName][uniqueName] = records;
+            alert("Mission successful. Total symbols: [" + (symbols) +
+                "]. Total cycles: [" + cycles + "]" + recordString);
+            updateWebData();
+            stopGame(get("canvas"));
+        });
     }
+}
+function updateWebData() {
+    $.ajax({
+        url: "https://api.myjson.com/bins/p370d",
+        type: "PUT",
+        data: JSON.stringify(levelWebData),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (data, textStatus, jqXHR) {
+            window.levelWebData = data;
+        }
+    }); 
 }
 function runSetup(canvas, greek, greekMode) {
     // don't recreate the waldo if changing timer intervals
@@ -670,7 +883,7 @@ function moveRunTimer(greek, greekMode, timeInterval) {
         rotateMoveElements(greek, timeInterval);
     }
 }
-function activateRunTimer(greek, greekMode) {
+function activateMoveRunTimer(greek, greekMode) {
     if (greek.waldo.action == "move") {
         greek.waldo.gridx += greek.waldo.direction.x;
         greek.waldo.gridy += greek.waldo.direction.y;
@@ -688,6 +901,11 @@ function activateRunTimer(greek, greekMode) {
                 bonded.style.top = mapsizey / 8 * bonded.gridy + "px";
             });
         }
+    }
+}
+function activateRunTimer(greek, greekMode) {
+    if (greek.waldo.action == "move") {
+        
         var arrowSym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy }, true);
         var actionSym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy }, false);
         if (arrowSym) {
@@ -701,11 +919,6 @@ function activateRunTimer(greek, greekMode) {
         //adjustBondBars
         greek.waldo.action = "move";
     } else if (greek.waldo.action == "sync") {
-        var oppoGreek = greekOpposite(greek.mode);
-        if (oppoGreek.waldo.action == "sync") {
-            greek.waldo.action = "move";
-            oppoGreek.waldo.action = "move";
-        }
     } else {
         var actionSym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy }, false);
         if (actionSym) {

@@ -135,6 +135,9 @@ button {
 .bond::after {
     content: 'Bond +';
 }
+.fuseSym::after {
+    content: 'Fuse';
+}
 .debond::after {
     font-size: 19px;
     content: 'Bond -';
@@ -194,6 +197,19 @@ button {
     text-align: center;
     padding: 1px;
 }
+.fuser, .innerfuser {
+    display: inline-block;
+    border-radius: 25px;
+    border: 5px solid #666;
+    font-size: 30px;
+    color: #666;
+    text-align: center;
+    padding: 1px;
+}
+.innerfuser {
+    margin-left: 10px;
+    margin-right: 10px;
+}
 .sensorSym input {
     width: 50px;
     position: relative;
@@ -212,4 +228,9 @@ button {
 }
 #reqs .bondbar {
     z-index: 1;
+}
+.selectBox {
+    position:absolute;
+    border: 1px solid #33F;
+    pointer-events: none;
 }

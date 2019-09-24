@@ -5,19 +5,19 @@
         sym.greek = greek.mode;
         sym.grab = "grabdrop";
         sym.name = "Grab";
-        sym.performAction = function (greekName, g) {
-
-            var grabbed = window.greek(sym.greek).waldo.grabbedElement;
+        sym.performAction = function (ingreek, g) {
+            var greekName = ingreek.mode;
+            var grabbed = window.greek(greekName).waldo.grabbedElement;
             if (grabbed && (sym.grab == "grabdrop" || sym.grab == "drop")) {
                 grabbed.grabbed = false;
-                window.greek(sym.greek).waldo.grabbedElement = null;
+                window.greek(greekName).waldo.grabbedElement = null;
             }
             else if (sym.grab == "grabdrop" || sym.grab == "grab") {
                 for (var i = 0; i < elements.childNodes.length; i++) {
                     var element = elements.childNodes[i];
-                    if (element.gridx == window.greek(sym.greek).waldo.gridx &&
-                        element.gridy == window.greek(sym.greek).waldo.gridy) {
-                        window.greek(sym.greek).waldo.grabbedElement = element;
+                    if (element.gridx == window.greek(greekName).waldo.gridx &&
+                        element.gridy == window.greek(greekName).waldo.gridy) {
+                        window.greek(greekName).waldo.grabbedElement = element;
                         element.grabbed = true;
                     }
                 }

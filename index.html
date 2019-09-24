@@ -10,18 +10,25 @@
             <textarea rows="16" cols="100" id="config">
             {
                 "alpha": {
-                    "in": [ {"name": "O", "x": 2, "y": 2, "probability": 100 }], 
+                    "in": [{
+                        "probability": 100,
+                        "elements": [{"name": "O", "x": 2, "y": 2 }], 
+                        "bonds": []
+                    }],
                     "outReqs": { 
                         "count": 10, 
                         "elements":[{"name":"H", "id":"H1", "x": 1, "y": 1},{"name":"O", "id":"O2", "x": 2, "y": 1},{"name":"H", "id":"H3", "x": 3, "y": 1}],
                         "bonds":[{ "count": 1, "left": "H1", "right": "O2" },{ "count": 1, "left": "O2", "right": "H3" }]
                     }
                 }, "beta": {
-                    "in": [ {"name": "H", "id":"h1", "x": 2, "y": 1, 
-                            "probability": 100, "bonds":["h2"] }, 
-                            {"name": "H", "id":"h2", "x": 3, "y": 1, 
-                            "probability": 100, "bonds":["h1"] }],
-                    "inBonds": [{ "count": 1, "left": "h1", "right": "h2" }],
+                    "in": [{
+                        "probability": 100,
+                        "elements": [
+                            {"name": "H", "id":"h1", "x": 2, "y": 1, "bonds":["h2"] }, 
+                            {"name": "H", "id":"h2", "x": 3, "y": 1, "bonds":["h1"] }
+                        ],
+                        "bonds": [{ "count": 1, "left": "h1", "right": "h2" }]
+                    }],
                     "outReqs": {}
                 },
                 "bonders": [{ "x": 4, "y": 3 }, { "x": 4, "y": 4 }, { "x": 5, "y": 3 }, { "x": 5, "y": 4 }]
@@ -29,6 +36,13 @@
             </textarea>
             <br />
             <button id="begin">Begin</button>
+
+            <br />
+            <br />
+            <div id="namechanger">
+                <h4>Name for high scores:</h4>
+                <input onchange="changeUniqueName(this)" id="uniqueNameInput" />
+            </div>
         </div>
         <div style="flex: 1; padding: 5px">
             <h2>Levels:</h2>
@@ -48,6 +62,7 @@
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="configs.js"></script>
 <script src="markgen.js"></script>
+<script src="dragselect.js"></script>
 <script src="symbolarrows.js"></script>
 <script src="symbolbond.js"></script>
 <script src="symbolgrab.js"></script>
@@ -57,6 +72,7 @@
 <script src="symbolrotate.js"></script>
 <script src="symbolsync.js"></script>
 <script src="symbolsensor.js"></script>
+<script src="symbolfuse.js"></script>
 <script src="periodictable.js"></script>
 <script src="particle.js"></script>
 <script src="game.js"></script>

@@ -21,17 +21,6 @@
         return sym;
     }
 }
-function performOut(greek, walGreek, element, outed) {
-    if (!outed) {
-        traverseBonds(element, b => {
-            delElement(b);
-        });
-        greek.outReqs.count--;
-        walGreek.waldo.action = "move";
-    } else {
-        walGreek.waldo.action = "out";
-    }
-}
 function getElOnSensor(elements, sen) {
     for (var el of elements.childNodes) {
         if (el.gridx == sen.gridx && el.gridy == sen.gridy) {

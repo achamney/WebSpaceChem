@@ -8,9 +8,13 @@
             var outed = false;
             for (var i = elements.childNodes.length - 1; i >=0; i--) {
                 var element = elements.childNodes[i];
+                var boundsFn = (x, y) => x > 5 && y < 4;
+                if (alpha.outReqs.size == "large") {
+                    boundsFn = (x, y) => x > 5;
+                }
                 if (element && !element.grabbed) {
                     if (sym.greek == "Alpha") {
-                        if (checkAllInBounds(element, (x, y) => x > 5 && y < 4)
+                        if (checkAllInBounds(element, boundsFn)
                             && meetsRequirements(element, alpha)) {
                             performOut(alpha, greek, element, outed);
                             outed = true;
@@ -155,7 +159,11 @@ window.saveSymOut = function (sym) {
 };
 window.symLoadOut = function (symEl, saveState) {
     symEl.greek = saveState.greek;
-    if (symEl.greek != "Alpha") {
+    if (symEl.greek == "Alpha") {
+        symEl.classList.add("OutAlpha");
+        symEl.classList.remove("OutBeta");
+    }
+    if (symEl.greek == "Beta") {
         symEl.classList.add("OutBeta");
         symEl.classList.remove("OutAlpha");
     }

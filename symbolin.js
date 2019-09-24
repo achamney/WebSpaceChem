@@ -14,31 +14,34 @@ function makePerfActionFn(sym, greek) {
         var yMod = sym.greek == beta.mode ? 4 : 0;
         var elements = get("elements");
         var inData = window.greek(sym.greek).in;
-        var inBonds = window.greek(sym.greek).inBonds;
         var randomChoose = Math.random();
-        for (var inEl of inData) {
-            if (inEl.probability / 100 < randomChoose) {
+        var chosenProb;
+        for (var inProb of inData) {
+            if (inProb.probability / 100 < randomChoose) {
                 randomChoose = 0;
                 continue;
             }
-            var element = makesym('div', elements, 'element ' + inEl.name,
-                inEl.x * mapsizex / 10,
-                (inEl.y + yMod) * mapsizey / 8,
-                20, 20, function () { });
-            element.innerHTML = inEl.name;
-            element.gridx = inEl.x;
-            element.gridy = (inEl.y + yMod);
-            element.symbol = inEl.name;
-            element.elId = inEl.id;
+            chosenProb = inProb;
+            for (var inEl of inProb.elements) {
+                var element = makesym('div', elements, 'element ' + inEl.name,
+                    inEl.x * mapsizex / 10,
+                    (inEl.y + yMod) * mapsizey / 8,
+                    20, 20, function () { });
+                element.innerHTML = inEl.name;
+                element.gridx = inEl.x;
+                element.gridy = (inEl.y + yMod);
+                element.symbol = inEl.name;
+                element.elId = inEl.id;
+            }
             randomChoose = 1;
         }
         // Add bonds after adding all elements
-        for (var inEl of inData) {
+        for (var inEl of chosenProb.elements) {
             var element = getElByGrid(elements.childNodes, inEl.x, (inEl.y + yMod));
             if (inEl.bonds && inEl.bonds.length > 0) {
                 for (var elId of inEl.bonds) {
-                    var bondingElData = inData.filter(d => d.id == elId)[0];
-                    var bondData = inBonds.filter(b => (b.left == element.elId && b.right == bondingElData.id) ||
+                    var bondingElData = chosenProb.elements.filter(d => d.id == elId)[0];
+                    var bondData = chosenProb.bonds.filter(b => (b.left == element.elId && b.right == bondingElData.id) ||
                         (b.right == element.elId && b.left == bondingElData.id))[0];
                     var bondingEl = getElByGrid(elements.childNodes,
                         bondingElData.x, bondingElData.y + yMod);
@@ -102,7 +105,11 @@ window.saveSymIn = function (sym) {
 };
 window.symLoadIn = function (symEl, saveState) {
     symEl.greek = saveState.greek;
-    if (symEl.greek != "Alpha") {
+    if (symEl.greek == "Alpha") {
+        symEl.classList.add("InAlpha");
+        symEl.classList.remove("InBeta");
+    }
+    if (symEl.greek == "Beta") {
         symEl.classList.add("InBeta");
         symEl.classList.remove("InAlpha");
     }
