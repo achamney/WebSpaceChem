@@ -32,10 +32,10 @@ window.openHighScores = function () {
     var symbolsDiv = make("div", contentContainer, "");
     var title = make("div", contentContainer, "centered statstitle");
     title.innerHTML = "Global Stats";
-    makeHisto(cyclesDiv, minMaxs.minCycles, minMaxs.maxCycles, "cycles",
-        levelWebData[levelName], minMaxs.count, 20, records.cycles);
     makeHisto(symbolsDiv, minMaxs.minSymbols, minMaxs.maxSymbols, "symbols",
-        levelWebData[levelName], minMaxs.count, 350, records.symbols);
+        levelWebData[levelName], minMaxs.count, 20, records.symbols);
+    makeHisto(cyclesDiv, minMaxs.minCycles, minMaxs.maxCycles, "cycles",
+        levelWebData[levelName], minMaxs.count, 350, records.cycles);
 }
 function makeHisto(container, min, max, dataName, data, count, offsetx, myScore) {
     offsetx = offsetx || 0;
@@ -47,7 +47,7 @@ function makeHisto(container, min, max, dataName, data, count, offsetx, myScore)
         chartSizeX = 250,
         stepWidth = chartSizeX/bins;
     for (var i = 0; i < bins; i++) {
-        var myBar = myScore >= lstep && myScore < rstep ? "selected" : "";
+        var myBar = myScore >= lstep && (myScore < rstep || (i == bins - 1 && myScore <= rstep)) ? "selected" : "";
         var bar = make("div", container, "histobar "+myBar);
         var barCount = getCountForBar(lstep, rstep, dataName, data, i == bins-1);
         bar.style.height = (barCount / count * maxBarHeight) + "px";

@@ -1,4 +1,4 @@
-var dragId, enableDrag;
+var dragId, enableDrag, dragTimeout;
 window.primeDragSelect = function (e) {
     if (dragId) {
         deleteDrag();
@@ -14,7 +14,7 @@ window.primeDragSelect = function (e) {
     selectBox.style.display = "none";
     dragId = selectBox.id;
     enableDrag = false;
-    window.setTimeout(function () {
+    dragTimeout = window.setTimeout(function () {
         deleteDrag();
     }, 5000);
 }
@@ -41,6 +41,7 @@ window.moveDragSelect = function (e) {
     }
 }
 window.selectSymbols = function (e) {
+    window.clearInterval(dragTimeout);
     if (dragId) {
         var selectBox = get(dragId);
         if (!enableDrag) {

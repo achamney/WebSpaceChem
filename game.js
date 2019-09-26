@@ -316,6 +316,7 @@ function makeBonder(sq) {
     bonder.draggable = true;
     bonder.ondragstart = function () {
         event.dataTransfer.setData("text", bonder.id);
+        dragId = null;
     }
     bonder.ondragover = null;
     bonder.ondrop = null;
