@@ -543,6 +543,7 @@ window.makePath = function(start, greek, greekMode) {
         while (curLoc.x >= 0 && curLoc.x < 10 && curLoc.y >= 0 && curLoc.y < 8) {
             curSym = symAtCoords(greek.symbols, curLoc, "arrow");
             var sensSym = symAtCoords(greek.symbols, curLoc);
+            var oldDir = curLoc.dir;
             if (sensSym && sensSym.sensor) {
                 var cloneCurLoc = clone(curLoc);
                 cloneCurLoc.dir = sensSym.direction;
@@ -555,15 +556,13 @@ window.makePath = function(start, greek, greekMode) {
             if (hasThisPath(greek.paths, curLoc)) {
                 break;
             }
-            createPathEl(curLoc);
+            createPathEl(curLoc, oldDir, curLoc.dir);
         }
     }
-    function createPathEl(curLoc) {
+    function createPathEl(curLoc, dir1, dir2) {
         var path;
-        if (curLoc.dir.x != 0)
-            path = makesq('div', start.parentNode, 'blk line ' + greek.mode, curLoc.x * mapsizex / 10, curLoc.y * mapsizey / 8, mapsizex / 10, 10);
-        else
-            path = makesq('div', start.parentNode, 'blk line ' + greek.mode, curLoc.x * mapsizex / 10, curLoc.y * mapsizey / 8, 10, mapsizey / 8);
+        path = makesq('img', start.parentNode, 'blk line ' + greek.mode, curLoc.x * mapsizex / 10, curLoc.y * mapsizey / 8, mapsizex / 10, mapsizey / 8);
+        path.src = getPathSrc(dir1, dir2, greek.mode);
         curLoc.path = path;
         var newCurLoc = clone(curLoc);
         greek.paths.push(newCurLoc);
@@ -579,6 +578,20 @@ window.makePath = function(start, greek, greekMode) {
             }
         }
         return false;
+    }
+    function getPathSrc(d1, d2, greek) {
+        var base = "img/";
+        d1 = d1 || {};
+        if ((!d1 || d1.y == 0) && d2.y == 0) return `${base}lr${greek}.png`;
+        if ((!d1 || d1.x == 0) && d2.x == 0) return `${base}ud${greek}.png`;
+        if (d1.x == 1 && d2.y == 1) return `${base}bl${greek}.png`;
+        if (d1.x == -1 && d2.y == 1) return `${base}br${greek}.png`;
+        if (d1.x == 1 && d2.y == -1) return `${base}tl${greek}.png`;
+        if (d1.x == -1 && d2.y == -1) return `${base}tr${greek}.png`;
+        if (d1.y == 1 && d2.x == 1) return `${base}tr${greek}.png`;
+        if (d1.y == -1 && d2.x == 1) return `${base}br${greek}.png`;
+        if (d1.y == 1 && d2.x == -1) return `${base}tl${greek}.png`;
+        if (d1.y == -1 && d2.x == -1) return `${base}bl${greek}.png`;
     }
 }
 window.symAtCoords = function(symbols, location, arrow) {

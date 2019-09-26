@@ -97,11 +97,8 @@ button {
 .start::after {
 	content: 'Start';
 }
-.line.Alpha {
-	background-color: rgba(255,1,1,0.5);
-}
-.line.Beta {
-	background-color: rgba(1,1,255,0.5);
+.line {
+    pointer-events: none;
 }
 .arrow {
     z-index: 1;
