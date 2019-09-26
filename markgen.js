@@ -31,7 +31,9 @@ window.make = function(tagname, parent, clazz, prepend) {
     if (clazz) {
         var spl = clazz.split(' ');
         for (var i = 0; i < spl.length; i++) {
-            el.classList.add(spl[i]);
+            if (spl[i] && spl[i] != "") {
+                el.classList.add(spl[i]);
+            }
         }
     }
     return el;

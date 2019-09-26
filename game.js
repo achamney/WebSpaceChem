@@ -277,6 +277,36 @@ function makeBottomButtons() {
         localStorage.setItem(window.levelName + "last", lastSave);
         load();
     }).style.width = "50px";
+    var checkA = makecheck(buttonContainer, "visibleSymbols alpha",
+        -50 + (buttonpos += 55), mapsizey + 60, "Alpha Visible");
+    checkA.onclick = function () {
+        toggleGreekVisibility(this, alpha);
+    }
+    var checkB = makecheck(buttonContainer, "visibleSymbols beta",
+        -50 + (buttonpos), mapsizey + 85, "Beta Visible");
+    checkB.onclick = function () {
+        toggleGreekVisibility(this, beta);
+    }
+}
+function makecheck(container, classes, x, y, text) {
+    var checkContainer = make("div", container, "checkcontainer");
+    var ret = make("input", checkContainer, "");
+    var checkstyle = make("span", checkContainer, classes);
+    var checkText = make("span", checkContainer, "");
+    checkText.innerHTML = text;
+    checkContainer.style.left = x + "px";
+    checkContainer.style.top = y + "px";
+    ret.checked = true;
+    ret.type = "checkbox";
+
+    return ret;
+}
+function toggleGreekVisibility(input, greek) {
+    var newVisible = input.checked ? "block" : "none";
+    for (var sym of greek.symbols) {
+        sym.style.display = newVisible;
+    }
+    $(".line." + greek.mode).css("display", newVisible);
 }
 function makeBonder(sq) {
     var bonder = makesq('div', sq, 'bonder', 0, 0, (mapsizex / 10)-13, (mapsizey / 8)-12);
@@ -819,10 +849,7 @@ function checkWin() {
             window.levelWebData = data;
             levelWebData[levelName] = levelWebData[levelName] || {};
             var records = levelWebData[levelName][uniqueName] || {};
-            var recordString = "";
             if (records.symbols) {
-                recordString += ". Previous best symbols: [" + records.symbols +
-                    "]. Previous best cycles: [" + records.cycles + "]";
                 if (symbols < records.symbols) {
                     records.symbols = symbols;
                 }
@@ -834,8 +861,7 @@ function checkWin() {
                 records.symbols = symbols;
             }
             levelWebData[levelName][uniqueName] = records;
-            alert("Mission successful. Total symbols: [" + (symbols) +
-                "]. Total cycles: [" + cycles + "]" + recordString);
+            openHighScores();
             updateWebData();
             stopGame(get("canvas"));
         });
