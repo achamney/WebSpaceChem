@@ -34,6 +34,7 @@
                                 }
                             }
                             adjustBondBars(b1e, 1, b2e);
+                            adjustBondBars(b2e, 1);
                             bonded.push({ b1: b1, b2: b2 });
                         }
                     }
@@ -52,9 +53,9 @@ window.adjustBondBars = function (element, divisor, secondEl) {
     element.bondBars = [];
     if (secondEl) {
         for (var bondbar of secondEl.bondBars) {
-            delElement(bondbar);
+            //delElement(bondbar);
         }
-        secondEl.bondBars = [];
+        //secondEl.bondBars = [];
     }
     for (var bond of element.bonds) {
         var count = element.bonds.filter(b => b == bond).length;

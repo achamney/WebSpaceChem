@@ -316,7 +316,7 @@ function makeBonder(sq) {
     bonder.draggable = true;
     bonder.ondragstart = function () {
         event.dataTransfer.setData("text", bonder.id);
-        dragId = null;
+        deleteDrag();
     }
     bonder.ondragover = null;
     bonder.ondrop = null;
@@ -772,6 +772,7 @@ function makesym(tagname, parent, clazz, left, top, width, height, butts) {
     ret.bonds = [];
     ret.draggable = true;
     ret.ondragstart = function (event) {
+        deleteDrag();
         if (!ret.selected) {
             deselectAll();
         }

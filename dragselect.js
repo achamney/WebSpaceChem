@@ -60,7 +60,7 @@ window.selectSymbols = function (e) {
             if (el == el2)
                 continue;
             if (elLeft < el2Left + 42 && elLeft + elWidth > el2Left &&
-                elTop < el2Top + 42 && elTop + elHeight > el2Top) {
+                elTop < el2Top + 42 && elTop + elHeight > el2Top && el2.style.display != "none") {
                 el2.selected = true;
                 el2.classList.add("selected");
                 e.stopImmediatePropagation();

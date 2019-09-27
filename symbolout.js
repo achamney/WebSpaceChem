@@ -12,7 +12,7 @@
                 if (alpha.outReqs.size == "large") {
                     boundsFn = (x, y) => x > 5;
                 }
-                if (element && !element.grabbed) {
+                if (element && !elementsGrabbed(element)) {
                     if (sym.greek == "Alpha") {
                         if (checkAllInBounds(element, boundsFn)
                             && meetsRequirements(element, alpha)) {
@@ -33,6 +33,14 @@
         setGrid(sym, sq, sq);
         return sym;
     }
+}
+function elementsGrabbed(element) {
+    var grabbed = false;
+    traverseBonds(element, b => {
+        if (b.grabbed)
+            grabbed = true;
+    });
+    return grabbed;
 }
 function performOut(greek, walGreek, element, outed) {
     if (!outed) {

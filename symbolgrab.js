@@ -9,7 +9,7 @@
             var greekName = ingreek.mode;
             var grabbed = window.greek(greekName).waldo.grabbedElement;
             if (grabbed && (sym.grab == "grabdrop" || sym.grab == "drop")) {
-                grabbed.grabbed = false;
+                traverseBonds(grabbed, subGrab => subGrab.grabbed = false);
                 window.greek(greekName).waldo.grabbedElement = null;
             }
             else if (sym.grab == "grabdrop" || sym.grab == "grab") {

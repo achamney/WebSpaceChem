@@ -48,7 +48,7 @@ function createStartSubButtons(greek) {
             if (~symInd) {
                 greek.symbols.splice(symInd, 1);
             }
-            clear(greek.startSymbol.parentSquare);
+            delElement(greek.startSymbol);
             clear(parent);
             greek.startSymbol = null;
             save();
