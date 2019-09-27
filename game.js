@@ -10,18 +10,31 @@
     var uniqueNameInput = get("uniqueNameInput");
     window.uniqueName = localStorage.getItem("uniqueName");
     uniqueNameInput.value = uniqueName;
-    $.get("https://api.myjson.com/bins/p370d", function (data, textStatus, jqXHR) {
+    getLevelWebData(data => {
         window.levelWebData = data;
         if (!uniqueName) {
             window.uniqueName = Math.floor(Math.random() * 1000000)+"";
             localStorage.setItem("uniqueName", uniqueName);
-            data.uniqueNames = data.uniqueNames || [];
-            data.uniqueNames.push(uniqueName);
-            updateWebData();
             uniqueNameInput.value = uniqueName;
+            makeNewSave(uniqueName);
         }
+        getPersonalData();
     });
-    
+    function makeNewSave(uniqueName) {
+        window.personalData = { levels: [] };
+        $.ajax({
+            url: "https://api.myjson.com/bins",
+            type: "POST",
+            data: JSON.stringify(personalData),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data, textStatus, jqXHR) {
+                var uri = data.uri.split("/");
+                levelWebData.uniqueNames.push({ name: uniqueName, id: uri[uri.length - 1] });
+                updateWebData();
+            }
+        }); 
+    }
 }
 window.changeUniqueName = function (un) {
     var newName = un.value;
@@ -428,8 +441,16 @@ window.save = function() {
     if (saveNumber >= 20) {
         saveNumber = 1;
     }
-    localStorage.setItem(window.levelName + (saveNumber), JSON.stringify(saveState));
+    var stringSave = JSON.stringify(saveState);
+    localStorage.setItem(window.levelName + (saveNumber), stringSave);
     localStorage.setItem(levelName + "last", saveNumber);
+    var level = personalData.levels.filter(l => l.name == levelName)[0];
+    if (!level) {
+        level = { name: levelName };
+        personalData.levels.push(level);
+    }
+    level.save = saveState;
+    updatePersonalData();
 }
 function saveReactorFeatures() {
     var saveFeatures = { bonders: []};
@@ -466,6 +487,12 @@ function load() {
     window.saveNumber = parseInt(lastSave);
     var saveStateJSON = localStorage.getItem(window.levelName + lastSave);
     var saveState = JSON.parse(saveStateJSON);
+    if (!saveState) {
+        var level = personalData.levels.filter(l => l.name == levelName);
+        if (level && level.save) {
+            saveState = level.save;
+        }
+    }
     deleteAll(alpha);
     deleteAll(beta);
     if (saveState) {
@@ -860,31 +887,46 @@ function checkWin() {
     if (winGame) {
         var symbols = alpha.symbols.length + beta.symbols.length;
         clearIntervals();
-        $.get("https://api.myjson.com/bins/p370d", function (data, textStatus, jqXHR) {
-            window.levelWebData = data;
-            levelWebData[levelName] = levelWebData[levelName] || {};
-            var records = levelWebData[levelName][uniqueName] || {};
-            if (records.symbols) {
-                if (symbols < records.symbols) {
-                    records.symbols = symbols;
-                }
-                if (cycles < records.cycles) {
-                    records.cycles = cycles;
-                }
-            } else {
-                records.cycles = cycles;
-                records.symbols = symbols;
+        var level = personalData.levels.filter(l => l.name == levelName)[0];
+        if (!level) {
+            level = { name: levelName };
+            personalData.levels.push(level);
+        }
+        if (level.symbols) {
+            if (symbols < level.symbols) {
+                level.symbols = symbols;
             }
-            levelWebData[levelName][uniqueName] = records;
-            openHighScores();
-            updateWebData();
-            stopGame(get("canvas"));
-        });
+            if (cycles < records.cycles) {
+                level.cycles = cycles;
+            }
+        } else {
+            level.cycles = cycles;
+            level.symbols = symbols;
+        }
+        openHighScores();
+        updatePersonalData();
+        stopGame(get("canvas"));
+        
     }
 }
-function updateWebData() {
+function updatePersonalData() {
+    var user = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
+    var url = "https://api.myjson.com/bins/"+user.id;
     $.ajax({
-        url: "https://api.myjson.com/bins/p370d",
+        url: url,
+        type: "PUT",
+        data: JSON.stringify(personalData),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (data, textStatus, jqXHR) {
+        }
+    }); 
+}
+function updateWebData() {
+    var url = localStorage.getItem("devStats");
+    url = url || "https://api.myjson.com/bins/olxbt";
+    $.ajax({
+        url: url,
         type: "PUT",
         data: JSON.stringify(levelWebData),
         contentType: "application/json; charset=utf-8",
@@ -988,5 +1030,49 @@ function traverseBondsIter(el, visit, visited) {
         if (visited.indexOf(bond) == -1) {
             traverseBondsIter(bond, visit, visited);
         }
+    }
+}
+window.getLevelWebData = function (callback) {
+    var url = localStorage.getItem("devStats");
+    url = url || "https://api.myjson.com/bins/olxbt";
+    $.get(url, function (data, textStatus, jqXHR) {
+        callback(data);
+    });
+}
+window.getPersonalData = function () {
+    var me = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
+    var url = "https://api.myjson.com/bins/"+me.id;
+    $.get(url, function (data, textStatus, jqXHR) {
+        window.personalData = data;
+    });
+}
+window.fixStats = function () {
+    var uniqueNames = levelWebData.uniqueNames.concat([]);
+    levelWebData.uniqueNames = [];
+    for (var name of uniqueNames) {
+        runSave(name);
+    }
+    function runSave(person) {
+        var myUserData = { levels: [], name: person.name };
+        for (var level of configs) {
+            var levelData = levelWebData[level.name][person.name];
+            if (levelData) {
+                levelData.name = level.name;
+                myUserData.levels.push(levelData);
+            }
+        }
+        $.ajax({
+            url: "https://api.myjson.com/bins",
+            type: "POST",
+            data: JSON.stringify(myUserData),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data, textStatus, jqXHR) {
+                var uri = data.uri.split("/");
+                console.log(data);
+                levelWebData.uniqueNames.push({ name: person.name, id: uri[uri.length - 1] });
+                //updateWebData();
+            }
+        }); 
     }
 }

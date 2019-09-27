@@ -27,15 +27,36 @@ window.openHighScores = function () {
         prevScoreText.innerHTML = "Previous best symbols: [" + records.symbols +
             "]. Previous best cycles: [" + records.cycles + "]";
     }
-    var minMaxs = getMinMaxCount(levelWebData[levelName]);
-    var cyclesDiv = make("div", contentContainer, "");
-    var symbolsDiv = make("div", contentContainer, "");
-    var title = make("div", contentContainer, "centered statstitle");
-    title.innerHTML = "Global Stats";
-    makeHisto(symbolsDiv, minMaxs.minSymbols, minMaxs.maxSymbols, "symbols",
-        levelWebData[levelName], minMaxs.count, 20, records.symbols);
-    makeHisto(cyclesDiv, minMaxs.minCycles, minMaxs.maxCycles, "cycles",
-        levelWebData[levelName], minMaxs.count, 350, records.cycles);
+
+    var scoreArray = [];
+    getAllScores(scoreArray).then(() => {
+        var minMaxs = getMinMaxCount(scoreArray);
+        var cyclesDiv = make("div", contentContainer, "");
+        var symbolsDiv = make("div", contentContainer, "");
+        var title = make("div", contentContainer, "centered statstitle");
+        title.innerHTML = "Global Stats";
+        makeHisto(symbolsDiv, minMaxs.minSymbols, minMaxs.maxSymbols, "symbols",
+            scoreArray, minMaxs.count, 20, records.symbols);
+        makeHisto(cyclesDiv, minMaxs.minCycles, minMaxs.maxCycles, "cycles",
+            scoreArray, minMaxs.count, 350, records.cycles);
+    });
+
+
+    function getAllScores(scoreArray) {
+        var promiseArray = [];
+        for (var person of levelWebData.uniqueNames) {
+            promiseArray.push($.get("https://api.myjson.com/bins/" + person.id, function (data, textStatus, jqXHR) {
+                if (data.levels && data.levels.length > 0) {
+                    var thisLevel = data.levels.filter(l => l.name == levelName)[0];
+                    if (thisLevel) {
+                        scoreArray.push(thisLevel);
+                        console.log(scoreArray);
+                    }
+                }
+            }));
+        }
+        return Promise.all(promiseArray);
+    }
 }
 function makeHisto(container, min, max, dataName, data, count, offsetx, myScore) {
     offsetx = offsetx || 0;
@@ -60,7 +81,7 @@ function makeHisto(container, min, max, dataName, data, count, offsetx, myScore)
         rstep += step;
     }
     var numText = make("span", container, "histoNumText");
-    numText.innerHTML = Math.round(rstep);
+    numText.innerHTML = Math.round(rstep-step);
     numText.style.left = (bins * stepWidth + offsetx + 2) + "px";
     var title = make("span", container, "titletext");
     title.innerHTML = dataName;
@@ -69,9 +90,8 @@ function makeHisto(container, min, max, dataName, data, count, offsetx, myScore)
 }
 function getMinMaxCount(records) {
     var minMaxs = { minCycles: 999999, minSymbols: 9999999, maxCycles: 0, maxSymbols: 0, count:0 };
-    for (var recordKey in records) {
+    for (var record of records) {
         minMaxs.count++;
-        var record = records[recordKey];
         if (record.cycles > minMaxs.maxCycles) {
             minMaxs.maxCycles = record.cycles;
         }
@@ -89,9 +109,8 @@ function getMinMaxCount(records) {
 }
 function getCountForBar(lstep, rstep, dataName, records, last) {
     var count = 0;
-    for (var recordKey in records) {
-        var record = records[recordKey],
-            data = record[dataName];
+    for (var record of records) {
+        var data = record[dataName];
         if (data >= lstep && (data < rstep || (last && data <= rstep))) {
             count++;
         }
