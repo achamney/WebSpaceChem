@@ -162,18 +162,20 @@ function checkWin() {
             level = { name: levelName };
             personalData.levels.push(level);
         }
+        if (!level.symbols) {
+            level.cycles = cycles;
+            level.symbols = symbols;
+        } 
+        openHighScores();
         if (level.symbols) {
+
             if (symbols < level.symbols) {
                 level.symbols = symbols;
             }
             if (cycles < level.cycles) {
                 level.cycles = cycles;
             }
-        } else {
-            level.cycles = cycles;
-            level.symbols = symbols;
         }
-        openHighScores();
         updatePersonalData();
         stopGame(get("canvas"));
         

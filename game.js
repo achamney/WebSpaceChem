@@ -102,9 +102,9 @@ function loadGame(config) {
     makeBuildButtons(canvas);
 
     window.headerBeta = make("h2", get('body'), '', true);
-    headerBeta.innerHTML = makeHeader(beta, "β");
+    headerBeta.innerHTML = makeHeader(beta, "&beta;");
     window.headerAlpha = make("h2", get('body'), '', true);
-    headerAlpha.innerHTML = makeHeader(alpha, "α");
+    headerAlpha.innerHTML = makeHeader(alpha, "&alpha;");
 
     makesq('div', canvas, 'blk toplblock', 0, 0, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
     if (alpha.outReqs && alpha.outReqs.size == "large") {
