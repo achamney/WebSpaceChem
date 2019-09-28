@@ -215,7 +215,7 @@ window.configs = [
         bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }]
     },
     {
-        "name": "Sleepless on Sernimir IV",
+        "name": "Sernimir IV: Sleepless on Sernimir IV",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -246,7 +246,8 @@ window.configs = [
             "outReqs": {
             }
         },
-        bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }]
+        bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }],
+		production: true
     },
     {
         "name": "Danopth: Every day is the First Day",

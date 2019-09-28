@@ -75,6 +75,9 @@ function loadGame(config) {
     var canvas = get('canvas');
     window.curSymbol = 'Start';
     window.cycles = 0;
+	if (config.production){
+		return loadProduction(config);
+	}
     window.alpha = {
         paths: [], symbols: [], in: config.alpha.in, outReqs: config.alpha.outReqs,
         inBonds: config.alpha.inBonds,
