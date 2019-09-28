@@ -21,11 +21,11 @@ window.openHighScores = function () {
     var symbols = alpha.symbols.length + beta.symbols.length;
     curScoreText.innerHTML = "Mission successful. Total symbols: [" + (symbols) +
         "]. Total cycles: [" + cycles + "].";
-    var records = levelWebData[levelName][uniqueName] || {};
-    if (records.symbols) {
+    var level = personalData.levels.filter(l => l.name == levelName)[0];
+    if (level.symbols) {
         var prevScoreText = make("div", contentContainer, "");
-        prevScoreText.innerHTML = "Previous best symbols: [" + records.symbols +
-            "]. Previous best cycles: [" + records.cycles + "]";
+        prevScoreText.innerHTML = "Previous best symbols: [" + level.symbols +
+            "]. Previous best cycles: [" + level.cycles + "]";
     }
 
     var scoreArray = [];
@@ -36,9 +36,9 @@ window.openHighScores = function () {
         var title = make("div", contentContainer, "centered statstitle");
         title.innerHTML = "Global Stats";
         makeHisto(symbolsDiv, minMaxs.minSymbols, minMaxs.maxSymbols, "symbols",
-            scoreArray, minMaxs.count, 20, records.symbols);
+            scoreArray, minMaxs.count, 20, level.symbols);
         makeHisto(cyclesDiv, minMaxs.minCycles, minMaxs.maxCycles, "cycles",
-            scoreArray, minMaxs.count, 350, records.cycles);
+            scoreArray, minMaxs.count, 350, level.cycles);
     });
 
 
