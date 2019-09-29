@@ -59,10 +59,15 @@ function makeSource(sq, inData) {
     source.innerHTML = "<div class='buildingtext'>" + inData.inProb[0].elements[0].name + " &#9654;&#9654;</div>"
     source.produceElement = function () {
         var els = makeElement(inData.inProb, get('elements'), gridNumX, gridNumY, 5, 5); 
+        var parentSquare = source.downstream.parentSquare;
         for (var el of els) {
-            el.dir = source.downstream.dir;
-            el.style.left = (parseInt(source.downstream.parent.left) + el.gridx * 4)+"px";
-            el.style.top = (parseInt(source.downstream.parent.top) + el.gridy * 4) + "px";
+            el.direction = source.downstream.direction;
+            el.classList.add('productionElement');
+            el.prodx = parentSquare.gridx;
+            el.prody = parentSquare.gridy;
+            el.state="move";
+            el.style.left = (el.prodx*mapsizex/gridNumX + el.gridx * 4)+"px";
+            el.style.top = (el.prody*mapsizey/gridNumY + el.gridy * 4) + "px";
         }
     }
     sources.push(source);
@@ -88,7 +93,7 @@ function makePipe(container, direction, parent) {
     parent.downstream = pipe;
     pipe.w = 1;
     pipe.h = 1;
-    pipe.dir = direction;
+    pipe.direction = direction;
     parent.canMakeMore = false;
     pipe.canMakeMore = true;
     pipe.draggable = false;
@@ -163,8 +168,8 @@ function setProdSqListeners(sq) {
         if (currentDragPipe) {
             var pipeOnSq = symAtCoords(pipes, { x: sq.gridx, y: sq.gridy });
             var dir = {
-                x: currentDragPipe.gridx - sq.gridx,
-                y: currentDragPipe.gridy - sq.gridy
+                x: -currentDragPipe.gridx + sq.gridx,
+                y: -currentDragPipe.gridy + sq.gridy
             };
             var collided = prodCollide(sq, null, { x: 1, y: 1 });
             if (!pipeOnSq && !collided) {
@@ -347,6 +352,7 @@ function makeProdbtns(tagname, parent, text, name, left, top, funct, width, heig
 
 function stopProdGame(canvas) {
     clearIntervals();
+    clear(get('elements'));
     makeProdBuildButtons(canvas);
     for (var outReq of config.outReqs) {
         outReq.count = outReq.maxCount;
@@ -365,14 +371,16 @@ window.runProd = function (canvas, moveTime, symbolTime) {
     }
 
     // Move
+    var elements = get('elements');
     if (moveTime < symbolTime) {
-        var elements = get('elements');
         var xDistTick = mapsizex / gridNumX / moveTime,
             yDistTick = mapsizey / gridNumY / moveTime;
         window.moveInterval = window.setInterval(function () {
             for (var element of elements.childNodes) {
-                incLeft(element, element.dir.x * xDistTick);
-                incTop(element, element.dir.y * yDistTick);
+                if(element.state == "move"){
+                    incLeft(element, element.direction.x * xDistTick);
+                    incTop(element, element.direction.y * yDistTick);
+                }
             }
         }, moveTime);
     }
@@ -384,6 +392,36 @@ window.runProd = function (canvas, moveTime, symbolTime) {
             if (source.counter == 10) {
                 source.produceElement();
                 source.counter = 0;
+            }
+        }
+        for (var el of elements.childNodes) {
+            if (el.state == "move") {
+                var lastPipe = symAtCoords(pipes, {x: el.prodx, y: el.prody});
+                el.prodx += el.direction.x;
+                el.prody += el.direction.y;
+                var curPipe = symAtCoords(pipes, {x: el.prodx, y: el.prody});
+                if (curPipe && curPipe.curElement) {
+                    el.prodx -= el.direction.x;
+                    el.prody -= el.direction.y;
+                    curPipe = lastPipe;
+                } else {
+                    //lastPipe.curElement = null;
+                }
+                el.style.left = (el.prodx*mapsizex/gridNumX + el.gridx * 4)+"px";
+                el.style.top = (el.prody*mapsizey/gridNumY + el.gridy * 4) + "px";
+                var curReactor = symAtCoords(reactors, {x: el.prodx, y: el.prody});
+                if (curPipe && curPipe.downstream) {
+                    curPipe.curElement = el;
+                    el.direction = curPipe.downstream.direction;
+                } else if (curReactor) {
+                    var reactorEntrance = getReactorEntrance(curReactor, {x:el.prodx, y:el.prody});
+                    if (reactorEntrance) {
+                        reactorEntrance.availableIns.push(el);
+                    }
+                    el.state = "stop";
+                } else {
+                    el.state = "stop";
+                }
             }
         }
         cycles++;
