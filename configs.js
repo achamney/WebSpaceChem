@@ -216,38 +216,42 @@ window.configs = [
     },
     {
         "name": "Sernimir IV: Sleepless on Sernimir IV",
-        "alpha": {
-            "in": [{
+        "in": [{
+            "inProb": [{
                 "probability": 100,
                 "elements": [{
-                    "name": "O", "id": "o1", "x": 1, "y": 1,
-                    "probability": 100, "bonds": ["c1"]
-                }, {
-                    "name": "C", "id": "c1", "x": 1, "y": 2,
-                    "probability": 100, "bonds": ["o1"]
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": []
                 }],
-                "bonds": [{ "count": 2, "left": "o1", "right": "c1" }],
+                "bonds": []
             }],
-            "outReqs": {
-                "count": 10,
-                "elements": [{ "name": "H", "id": "h1", x: 0, y: 2 }, { "name": "C", "id": "c1", x: 1, y: 2 }, { "name": "H", "id": "h2", x: 2, y: 2 },
-                    { "name": "O", "id": "o1", x: 1, y: 1 }],
-                "bonds": [{ "count": 2, "left": "c1", "right": "o1" }, { "count": 1, "left": "c1", "right": "h1" }, { "count": 1, "left": "c1", "right": "h2" }]
-            }
-        }, "beta": {
-            "in": [{
+            x: 4, y: 1, w: 5, h: 6
+        }, {
+            "inProb": [{
                 "probability": 100,
                 "elements": [{
-                    "name": "H", "id": "h1", "x": 1, "y": 1,
-                    "probability": 100, "bonds": []
+                    "name": "O", "id": "o1", "x": 1, "y": 1, "bonds": []
                 }],
-                "bonds": [],
+                "bonds": []
             }],
-            "outReqs": {
-            }
-        },
-        bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }],
-		production: true
+            x: 5, y: 8, w: 5, h: 6
+            }, {
+                "inProb": [{
+                    "probability": 100,
+                    "elements": [{
+                        "name": "C", "id": "c1", "x": 1, "y": 1, "bonds": []
+                    }],
+                    "bonds": []
+                }],
+            x: 6, y: 15, w: 5, h: 6
+        }],
+        "outReqs": [{
+            "count": 40,
+            "elements": [{ "name": "H", "id": "h1", x: 0, y: 2 }, { "name": "C", "id": "c1", x: 1, y: 2 }, { "name": "H", "id": "h2", x: 2, y: 2 },
+                { "name": "O", "id": "o1", x: 1, y: 1 }],
+            "bonds": [{ "count": 2, "left": "c1", "right": "o1" }, { "count": 1, "left": "c1", "right": "h1" }, { "count": 1, "left": "c1", "right": "h2" }],
+            x: 23, y: 8, w: 2, h: 3
+        }],
+		"production": true
     },
     {
         "name": "Danopth: Every day is the First Day",

@@ -14,45 +14,51 @@ function makePerfActionFn(sym, greek) {
         var yMod = sym.greek == beta.mode ? 4 : 0;
         var elements = get("elements");
         var inData = window.greek(sym.greek).in;
-        var randomChoose = Math.random();
-        var chosenProb;
-        for (var inProb of inData) {
-            if (inProb.probability / 100 < randomChoose) {
-                randomChoose = 0;
-                continue;
-            }
-            chosenProb = inProb;
-            for (var inEl of inProb.elements) {
-                var element = makesym('div', elements, 'element ' + inEl.name,
-                    inEl.x * mapsizex / 10,
-                    (inEl.y + yMod) * mapsizey / 8,
-                    20, 20, function () { });
-                element.innerHTML = inEl.name;
-                element.gridx = inEl.x;
-                element.gridy = (inEl.y + yMod);
-                element.symbol = inEl.name;
-                element.elId = inEl.id;
-            }
-            randomChoose = 1;
-        }
-        // Add bonds after adding all elements
-        for (var inEl of chosenProb.elements) {
-            var element = getElByGrid(elements.childNodes, inEl.x, (inEl.y + yMod));
-            if (inEl.bonds && inEl.bonds.length > 0) {
-                for (var elId of inEl.bonds) {
-                    var bondingElData = chosenProb.elements.filter(d => d.id == elId)[0];
-                    var bondData = chosenProb.bonds.filter(b => (b.left == element.elId && b.right == bondingElData.id) ||
-                        (b.right == element.elId && b.left == bondingElData.id))[0];
-                    var bondingEl = getElByGrid(elements.childNodes,
-                        bondingElData.x, bondingElData.y + yMod);
-                    for (var i= 0; i < bondData.count;i++) {
-                        element.bonds.push(bondingEl);
-                    }
-                }
-                adjustBondBars(element);
-            }
-        }
+        makeElement(inData, elements,
+            10, 8, 20, 20, yMod);
     };
+}
+window.makeElement = function (inData, container, x, y, w, h, ymod) {
+    ymod = ymod || 0;
+    var randomChoose = Math.random();
+    var chosenProb;
+    var outElements = [];
+    for (var inProb of inData) {
+        if (inProb.probability / 100 < randomChoose) {
+            randomChoose = 0;
+            continue;
+        }
+        chosenProb = inProb;
+        for (var inEl of inProb.elements) {
+            var element = makesym('div', container, 'element ' + inEl.name,
+                inEl.x * mapsizex / x, (inEl.y + ymod) * mapsizey / y, w, h, function () { });
+            element.innerHTML = inEl.name;
+            element.gridx = inEl.x;
+            element.gridy = (inEl.y + ymod);
+            element.symbol = inEl.name;
+            element.elId = inEl.id;
+            outElements.push(element);
+        }
+        randomChoose = 1;
+    }
+    // Add bonds after adding all elements
+    for (var inEl of chosenProb.elements) {
+        var element = getElByGrid(elements.childNodes, inEl.x, (inEl.y + ymod));
+        if (inEl.bonds && inEl.bonds.length > 0) {
+            for (var elId of inEl.bonds) {
+                var bondingElData = chosenProb.elements.filter(d => d.id == elId)[0];
+                var bondData = chosenProb.bonds.filter(b => (b.left == element.elId && b.right == bondingElData.id) ||
+                    (b.right == element.elId && b.left == bondingElData.id))[0];
+                var bondingEl = getElByGrid(elements.childNodes,
+                    bondingElData.x, bondingElData.y + ymod);
+                for (var i = 0; i < bondData.count; i++) {
+                    element.bonds.push(bondingEl);
+                }
+            }
+            adjustBondBars(element);
+        }
+    }
+    return outElements;
 }
 function getElByGrid(elements, x, y) {
     for (var el of elements) {

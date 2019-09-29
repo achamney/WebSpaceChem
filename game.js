@@ -68,11 +68,12 @@ function setConfig(config) {
         get("config").value = JSON.stringify(config, null, 4);
     }
 }
-function loadGame(config) {
+function loadGame(config, container) {
+    container = container || "canvas";
     window.mapsizex = 750;
     window.mapsizey = 480;
     window.elementRadius = 20;
-    var canvas = get('canvas');
+    var canvas = get(container);
     window.curSymbol = 'Start';
     window.cycles = 0;
 	if (config.production){
@@ -202,7 +203,7 @@ function loadGame(config) {
         }
     });
     load();
-    makeBottomButtons();
+    makeBottomButtons(container);
     makeDragSelectListeners();
 }
 function makeInBox(container, inProbs, greekMode, offsetx) {
@@ -254,8 +255,9 @@ function makeInOutBox(container, elements, bonds, greekMode, offsetx, size) {
         }
     }
 }
-function makeBottomButtons() {
-    var buttonContainer = get('canvas'),
+function makeBottomButtons(parentContainer) {
+    parentContainer = parentContainer || "canvas";
+    var buttonContainer = get(parentContainer),
         buttonpos = -100;
     makebtn('button', buttonContainer, 'Back', -50 + (buttonpos += 155), mapsizey + 60, function () {
         location.reload();
