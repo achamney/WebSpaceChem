@@ -19,7 +19,7 @@
 }
 function createStartSubButtons(greek) {
     return function () {
-        var butList = [], parent = get("symButtons");
+        var butList = [], parent = get("symButtons" + curReactor.id);
         var xoffset = -400;
         clear(parent);
         butList.push(makebtn('button', parent, 'Left', mapsizex / 2 + (xoffset += 100), mapsizey, function () {

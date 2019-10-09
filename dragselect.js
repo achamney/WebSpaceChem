@@ -1,10 +1,10 @@
 var dragId, enableDrag, dragTimeout;
-window.primeDragSelect = function (e) {
+window.doubleClick = 0;
+window.primeDragSelect = function (e, canvas) {
     if (dragId) {
         deleteDrag();
     }
-    var container = get('canvas');
-    var selectBox = make('div', container, 'selectBox');
+    var selectBox = make('div', canvas, 'selectBox');
     selectBox.x = e.x;
     selectBox.y = e.y - 100;
     selectBox.style.left = selectBox.x + "px";
@@ -18,7 +18,7 @@ window.primeDragSelect = function (e) {
         deleteDrag();
     }, 5000);
 }
-window.moveDragSelect = function (e) {
+window.moveDragSelect = function (e,canvas) {
     if (dragId) {
         var selectBox = get(dragId);
         var newX = e.x, newY = e.y - 100;
@@ -40,7 +40,7 @@ window.moveDragSelect = function (e) {
         }
     }
 }
-window.selectSymbols = function (e) {
+window.selectSymbols = function (e, canvas) {
     window.clearInterval(dragTimeout);
     if (dragId) {
         var selectBox = get(dragId);
@@ -48,7 +48,7 @@ window.selectSymbols = function (e) {
             deleteDrag();
             return;
         }
-        var allSyms = alpha.symbols.concat(beta.symbols);
+        var allSyms = curReactor.alpha.symbols.concat(curReactor.beta.symbols);
         deselectAll();
         var elLeft = parseInt(selectBox.style.left),
             elTop = parseInt(selectBox.style.top),
@@ -64,7 +64,7 @@ window.selectSymbols = function (e) {
                 el2.selected = true;
                 el2.classList.add("selected");
                 e.stopImmediatePropagation();
-                makeDragDelButton();
+                makeDragDelButton(canvas);
             }
         }
 
@@ -78,14 +78,14 @@ function deleteDrag() {
         dragId = null;
     }
 }
-window.makeDragDelButton = function () {
-    var parent = get("symButtons");
+window.makeDragDelButton = function (canvas) {
+    var parent = $(canvas).find(".symButtons")[0];
     clear(parent);
     makebtn('button', parent, 'Delete', mapsizex / 2 - 50, mapsizey, function () {
-        deleteAllSelected(alpha);
-        deleteAllSelected(beta);
-        alpha.startSymbol && makePath(alpha.startSymbol.parentSquare, alpha);
-        beta.startSymbol && makePath(beta.startSymbol.parentSquare, beta);
+        deleteAllSelected(curReactor.alpha);
+        deleteAllSelected(curReactor.beta);
+        curReactor.alpha.startSymbol && makePath(curReactor.alpha.startSymbol.parentSquare, curReactor.alpha);
+        curReactor.beta.startSymbol && makePath(curReactor.beta.startSymbol.parentSquare, curReactor.beta);
         clear(parent);
         save();
     }, 100, 50);
@@ -104,14 +104,14 @@ function deleteAllSelected(greek) {
         }
     }
 }
-window.makeDragSelectListeners = function () {
+window.makeDragSelectListeners = function (canvas) {
     document.addEventListener("mousedown", function (e) {
-        primeDragSelect(e);
+        primeDragSelect(e, canvas);
     });
     document.addEventListener("mouseup", function (e) {
-        selectSymbols(e);
+        selectSymbols(e,canvas);
     });
     document.addEventListener("mousemove", function (e) {
-        moveDragSelect(e);
+        moveDragSelect(e, canvas);
     });
 }

@@ -4,35 +4,39 @@
         var sym = makesym('div', sq, 'symbol out Out' + greek.mode + ' ' + greek.mode, 0, 0, 50, 50, createOutSubButtons(greek));
         sym.greek = greek.mode;
         sym.name = "Out";
-        sym.performAction = function (greekName, g) {
-            var outed = false;
-            for (var i = elements.childNodes.length - 1; i >=0; i--) {
-                var element = elements.childNodes[i];
-                var boundsFn = (x, y) => x > 5 && y < 4;
-                if (alpha.outReqs.size == "large") {
-                    boundsFn = (x, y) => x > 5;
-                }
-                if (element && !elementsGrabbed(element)) {
-                    if (sym.greek == "Alpha") {
-                        if (checkAllInBounds(element, boundsFn)
-                            && meetsRequirements(element, alpha)) {
-                            performOut(alpha, greek, element, outed);
-                            outed = true;
-                        }
-                    }
-                    else if (sym.greek == "Beta") {
-                        if (checkAllInBounds(element, (x, y) => x > 5 && y >= 4)
-                            && meetsRequirements(element, beta)) {
-                            performOut(beta, greek, element, outed);
-                            outed = true;
-                        }
-                    }
-                }
-            }
-        };
+        sym.performAction = outFn(sym, greek);
         setGrid(sym, sq, sq);
         return sym;
     }
+}
+window.outFn = function (sym, greek) {
+    var elements = get("elements" + greek.reactorId);
+    return function (greekName, g) {
+        var outed = false;
+        for (var i = elements.childNodes.length - 1; i >= 0; i--) {
+            var element = elements.childNodes[i];
+            var boundsFn = (x, y) => x > 5 && y < 4;
+            if (curReactor.alpha.outReqs.size == "large") {
+                boundsFn = (x, y) => x > 5;
+            }
+            if (element && !elementsGrabbed(element)) {
+                if (sym.greek == "Alpha") {
+                    if (checkAllInBounds(element, boundsFn)
+                        && meetsRequirements(element, alpha)) {
+                        performOut(curReactor.alpha, greek, element, outed);
+                        outed = true;
+                    }
+                }
+                else if (sym.greek == "Beta") {
+                    if (checkAllInBounds(element, (x, y) => x > 5 && y >= 4)
+                        && meetsRequirements(element, beta)) {
+                        performOut(curReactor.beta, greek, element, outed);
+                        outed = true;
+                    }
+                }
+            }
+        }
+    };
 }
 function elementsGrabbed(element) {
     var grabbed = false;
@@ -176,3 +180,48 @@ window.symLoadOut = function (symEl, saveState) {
         symEl.classList.remove("OutAlpha");
     }
 };
+
+window.prodOutFn = function (sym, greek) {
+    var elements = get("elements" + greek.reactorId);
+    return function (greekName, greekMode) {
+        var outed = false;
+        for (var i = elements.childNodes.length - 1; i >= 0; i--) {
+            var element = elements.childNodes[i];
+            var boundsFn = (x, y) => x > 5 && y < 4;
+            if (curReactor.alpha.outReqs.size == "large") {
+                boundsFn = (x, y) => x > 5;
+            }
+            if (element && !elementsGrabbed(element)) {
+                if (sym.greek == "Alpha") {
+                    if (checkAllInBounds(element, boundsFn)) {
+                        performProdOut(curReactor.alpha, greek, element, outed);
+                        outed = true;
+                    }
+                }
+                else if (sym.greek == "Beta") {
+                    if (checkAllInBounds(element, (x, y) => x > 5 && y >= 4)
+                        && meetsRequirements(element, beta)) {
+                        performProdOut(curReactor.beta, greek, element, outed);
+                        outed = true;
+                    }
+                }
+            }
+        }
+    };
+}
+function performProdOut(greek, walGreek, element, outed) {
+    if (!outed) {
+        var outElements = [];
+        traverseBonds(element, b => {
+            outElements.push(b);
+            delElement(b);
+        });
+        var reactor = get(greek.reactorId);
+        var outPipe = greek == reactor.alpha ? reactor.outPipes[0] : reactor.outPipes[1];
+        var inData = makeInDataFromElements({ childNodes: outElements }, 6);
+        makeProdElement(outPipe, inData);
+        walGreek.waldo.action = "move";
+    } else {
+        walGreek.waldo.action = "out";
+    }
+}

@@ -6,6 +6,7 @@
         sym.grab = "grabdrop";
         sym.name = "Grab";
         sym.performAction = function (ingreek, g) {
+            var elements = get("elements" + window.greek(greekName).reactorId);
             var greekName = ingreek.mode;
             var grabbed = window.greek(greekName).waldo.grabbedElement;
             if (grabbed && (sym.grab == "grabdrop" || sym.grab == "drop")) {
@@ -29,7 +30,7 @@
 }
 function createGrabSubButtons(greek) {
     return function (sym) {
-        var butList = [], parent = get("symButtons");
+        var butList = [], parent = get("symButtons" + curReactor.id);
         var xoffset = -200;
         var selSym = greek.symbols.filter(s => s.selected)[0];
         clear(parent);

@@ -57,7 +57,7 @@ function beginButtonFn() {
         beginButton.style.display = "none";
         config.style.display = "none";
         get("configContainer").style.display = "none";
-        loadGame(configJson);
+        loadGame(configJson, 'canvas', {});
     } catch (e) {
         alert("Error parsing configuration file, try again");
     }
@@ -68,57 +68,70 @@ function setConfig(config) {
         get("config").value = JSON.stringify(config, null, 4);
     }
 }
-function loadGame(config, container) {
-    container = container || "canvas";
+window.cycles = 0;
+function loadGame(config, container, reactor) {
+    var canvas = get(container);
     window.mapsizex = 750;
     window.mapsizey = 480;
     window.elementRadius = 20;
-    var canvas = get(container);
     window.curSymbol = 'Start';
-    window.cycles = 0;
+    cycles = 0;
 	if (config.production){
 		return loadProduction(config);
-	}
-    window.alpha = {
-        paths: [], symbols: [], in: config.alpha.in, outReqs: config.alpha.outReqs,
-        inBonds: config.alpha.inBonds,
-        mode: "Alpha"
-    };
-    window.beta = {
-        paths: [], symbols: [], in: config.beta.in, outReqs: config.beta.outReqs,
-        inBonds: config.beta.inBonds,
-        mode: "Beta"
-    };
-    window.reactorFeatures = {
-        bonderData: config.bonders || [],
-        bonders: [],
-        sensor: config.sensor,
-        fuser: config.fuser
     }
-    if (alpha.outReqs) {
-        alpha.outReqs.maxCount = alpha.outReqs.count;
+    if (!reactor.alpha) {
+        reactor.alpha = {
+            paths: [], symbols: [], in: config.alpha.in, outReqs: config.alpha.outReqs,
+            inBonds: config.alpha.inBonds,
+            mode: "Alpha",
+            reactorId: reactor.id
+        };
+        reactor.beta = {
+            paths: [], symbols: [], in: config.beta.in, outReqs: config.beta.outReqs,
+            inBonds: config.beta.inBonds,
+            mode: "Beta",
+            reactorId: reactor.id
+        };
+        reactor.reactorFeatures = {
+            bonderData: config.bonders || [],
+            bonders: [],
+            sensor: config.sensor,
+            fuser: config.fuser
+        }
+        if (reactor.alpha.outReqs) {
+            reactor.alpha.outReqs.maxCount = reactor.alpha.outReqs.count;
+        }
+        if (reactor.beta.outReqs) {
+            reactor.beta.outReqs.maxCount = reactor.beta.outReqs.count;
+        }
+        reactor.mode = reactor.alpha;
+    } else {
+        reactor.reactorFeatures.bonders = [];
     }
-    if (beta.outReqs) {
-        beta.outReqs.maxCount = beta.outReqs.count;
-    }
-    window.mode = alpha;
+    window.curReactor = reactor;
+    makeUI(reactor, canvas);
+    makeKeyListeners(reactor, canvas);
+    load();
+}
+function makeUI(reactor, canvas) {
 
+    makeBottomButtons(canvas);
     makeBuildButtons(canvas);
 
-    window.headerBeta = make("h2", get('body'), '', true);
-    headerBeta.innerHTML = makeHeader(beta, "&beta;");
-    window.headerAlpha = make("h2", get('body'), '', true);
-    headerAlpha.innerHTML = makeHeader(alpha, "&alpha;");
+    reactor.headerBeta = make("h2", canvas, 'req2', true);
+    reactor.headerBeta.innerHTML = makeHeader(reactor.beta, "&beta;");
+    reactor.headerAlpha = make("h2", canvas, 'req1', true);
+    reactor.headerAlpha.innerHTML = makeHeader(reactor.alpha, "&alpha;");
 
     makesq('div', canvas, 'blk toplblock', 0, 0, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
-    if (alpha.outReqs && alpha.outReqs.size == "large") {
+    if (reactor.alpha.outReqs && reactor.alpha.outReqs.size == "large") {
         makesq('div', canvas, 'blk toprblock', mapsizex / 2 + mapsizex / 10, 0, mapsizex / 2 - mapsizex / 10, mapsizey);
     } else {
         makesq('div', canvas, 'blk toprblock', mapsizex / 2 + mapsizex / 10, 0, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
         makesq('div', canvas, 'blk bottomrblock', mapsizex / 2 + mapsizex / 10, mapsizey / 2, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
     }
     makesq('div', canvas, 'blk bottomlblock', 0, mapsizey / 2, mapsizex / 2 - mapsizex / 10, mapsizey / 2);
-    window.levelSquares = [];
+    reactor.levelSquares = [];
     for (var i = 0; i < 10; i++) {
 
         for (var j = 0; j < 8; j++) {
@@ -127,27 +140,33 @@ function loadGame(config, container) {
             setSqListeners(sq);
             sq.gridx = i;
             sq.gridy = j;
-            for (var bonder of reactorFeatures.bonderData) {
+            for (var bonder of reactor.reactorFeatures.bonderData) {
                 if (bonder.x == i && bonder.y == j) {
                     makeBonder(sq);
                 }
             }
-            if (reactorFeatures.sensor && reactorFeatures.sensor.x == i && reactorFeatures.sensor.y == j) {
+            if (reactor.reactorFeatures.sensor && reactor.reactorFeatures.sensor.x == i && reactor.reactorFeatures.sensor.y == j) {
                 makeSensor(sq);
             }
-            if (reactorFeatures.fuser && reactorFeatures.fuser.x == i && reactorFeatures.fuser.y == j) {
+            if (reactor.reactorFeatures.fuser && reactor.reactorFeatures.fuser.x == i && reactor.reactorFeatures.fuser.y == j) {
                 makeFuser(sq);
             }
-            levelSquares.push(sq);
+            reactor.levelSquares.push(sq);
         }
     }
-    var reqDiv = get("reqs");
-    var extra = makeInBox(reqDiv, alpha.in, alpha.mode, 0);
-    makeInBox(reqDiv, beta.in, beta.mode, 100 + extra);
-    makeInOutBox(reqDiv, alpha.outReqs.elements, alpha.outReqs.bonds, alpha.mode, 300, alpha.outReqs.size);
-    if (!alpha.outReqs.size) {
-        makeInOutBox(reqDiv, beta.outReqs.elements, beta.outReqs.bonds, beta.mode, 400);
+    makeRequirements(canvas, reactor);
+}
+window.makeRequirements = function (canvas, reactor) {
+    var reqDiv = $(canvas).find('.requirements')[0];
+    clear(reqDiv);
+    var extra = makeInBox(reqDiv, reactor.alpha.in, reactor.alpha.mode, 0);
+    makeInBox(reqDiv, reactor.beta.in, reactor.beta.mode, 100 + extra);
+    makeInOutBox(reqDiv, reactor.alpha.outReqs.elements, reactor.alpha.outReqs.bonds, reactor.alpha.mode, 300, reactor.alpha.outReqs.size);
+    if (!reactor.alpha.outReqs.size) {
+        makeInOutBox(reqDiv, reactor.beta.outReqs.elements, reactor.beta.outReqs.bonds, reactor.beta.mode, 400);
     }
+}
+function makeKeyListeners(reactor, canvas) {
     document.addEventListener('keydown', (e) => {
         if (e.code === "KeyW") curSymbol = "Up";
         else if (e.code === "KeyS") curSymbol = "Down";
@@ -160,9 +179,9 @@ function loadGame(config, container) {
         else if (e.code === "KeyG") curSymbol = "Grab";
         else if (e.code === "KeyY") curSymbol = "Sync";
         else if (e.code === "KeyN") curSymbol = "Sensor";
-        else if (e.code === "Tab") switchGreek(mode.mode, canvas);
+        else if (e.code === "Tab") switchGreek(reactor.mode.mode, canvas);
         else if (e.code === "Space") {
-            if (alpha.waldo && activateInterval) {
+            if (reactor.alpha.waldo && activateInterval) {
                 clearIntervals();
             } else {
                 makeRunButtons(canvas);
@@ -194,7 +213,7 @@ function loadGame(config, container) {
                 run(canvas, 2000, 2);
             }
         }
-        var buttonContainer = get("buttonContainer");
+        var buttonContainer = $(canvas).find('.buttonContainer')[0];
         deselBtns(buttonContainer);
         for (var child of buttonContainer.childNodes) {
             if (child.name == curSymbol) {
@@ -202,9 +221,7 @@ function loadGame(config, container) {
             }
         }
     });
-    load();
-    makeBottomButtons(container);
-    makeDragSelectListeners();
+    makeDragSelectListeners(canvas);
 }
 function makeInBox(container, inProbs, greekMode, offsetx) {
     var extra = 0;
@@ -256,8 +273,7 @@ function makeInOutBox(container, elements, bonds, greekMode, offsetx, size) {
     }
 }
 function makeBottomButtons(parentContainer) {
-    parentContainer = parentContainer || "canvas";
-    var buttonContainer = get(parentContainer),
+    var buttonContainer = parentContainer,
         buttonpos = -100;
     makebtn('button', buttonContainer, 'Back', -50 + (buttonpos += 155), mapsizey + 60, function () {
         location.reload();
@@ -335,8 +351,8 @@ function makeBonder(sq) {
     }
     bonder.ondragover = null;
     bonder.ondrop = null;
-    reactorFeatures.bonders.push(bonder);
-    bonder.innerHTML = "+ - <sup>" + reactorFeatures.bonders.length+"</sup>";
+    curReactor.reactorFeatures.bonders.push(bonder);
+    bonder.innerHTML = "+ - <sup>" + curReactor.reactorFeatures.bonders.length+"</sup>";
 }
 function makeSensor(sq) {
     var sensor = makesq('div', sq, 'sensor', 0, 0, (mapsizex / 10) - 13, (mapsizey / 8) - 12);
@@ -375,7 +391,7 @@ function dropSymSq(sq) {
         while (dropTarget && !dropTarget.classList.contains("square")) {
             dropTarget = dropTarget.parentNode;
         }
-        if (!dropTarget) return;
+        if (!dropTarget || !symbol) return;
         if (symbol.nodeName == "BUTTON") {
             curSymbol = symbol.name;
             $(dropTarget).click();
@@ -387,10 +403,10 @@ function dropSymSq(sq) {
             } else {
                 var xdiff = dropTarget.gridx - symbol.gridx,
                     ydiff = dropTarget.gridy - symbol.gridy,
-                    combinedSym = alpha.symbols.concat(beta.symbols);
+                    combinedSym = curReactor.alpha.symbols.concat(curReactor.beta.symbols);
                 for (var sym of combinedSym) {
                     if (sym.selected) {
-                        var diffDropSq = symAtCoords(levelSquares, {
+                        var diffDropSq = symAtCoords(curReactor.levelSquares, {
                             x: sym.gridx + xdiff,
                             y: sym.gridy + ydiff
                         });
@@ -406,8 +422,8 @@ function dropSymbolOnSquare(dropTarget, symbol) {
     symbol.gridx = dropTarget.gridx;
     symbol.gridy = dropTarget.gridy;
     symbol.parentSquare = dropTarget;
-    alpha.startSymbol && makePath(alpha.startSymbol.parentSquare, alpha);
-    beta.startSymbol && makePath(beta.startSymbol.parentSquare, beta);
+    curReactor.alpha.startSymbol && makePath(curReactor.alpha.startSymbol.parentSquare, curReactor.alpha);
+    curReactor.beta.startSymbol && makePath(curReactor.beta.startSymbol.parentSquare, curReactor.beta);
     save();
 }
 function makeHeader(greek, greekSymbol) {
@@ -495,17 +511,17 @@ function load() {
             saveState = level.save;
         }
     }
-    deleteAll(alpha);
-    deleteAll(beta);
+    deleteAll(curReactor.alpha);
+    deleteAll(curReactor.beta);
     if (saveState) {
-        alpha.symbols = loadGreek(alpha, saveState.alpha);
-        beta.symbols = loadGreek(beta, saveState.beta);
-        alpha.startSymbol && makePath(alpha.startSymbol.parentSquare, alpha);
-        beta.startSymbol && makePath(beta.startSymbol.parentSquare, beta);
+        curReactor.alpha.symbols = loadGreek(alpha, saveState.alpha);
+        curReactor.beta.symbols = loadGreek(beta, saveState.beta);
+        curReactor.alpha.startSymbol && makePath(curReactor.alpha.startSymbol.parentSquare, curReactor.alpha);
+        curReactor.beta.startSymbol && makePath(curReactor.beta.startSymbol.parentSquare, curReactor.beta);
         saveState.reactorFeatures = saveState.reactorFeatures || {};
         if (saveState.reactorFeatures.bonders) {
             for (var bonderId in saveState.reactorFeatures.bonders) {
-                var dropTarget = symAtCoords(levelSquares, {
+                var dropTarget = symAtCoords(curReactor.levelSquares, {
                     x: saveState.reactorFeatures.bonders[bonderId].gridx,
                     y: saveState.reactorFeatures.bonders[bonderId].gridy
                 });
@@ -513,14 +529,14 @@ function load() {
             }
         }
         if (saveState.reactorFeatures.sensor) {
-            var dropTarget = symAtCoords(levelSquares, {
+            var dropTarget = symAtCoords(curReactor.levelSquares, {
                 x: saveState.reactorFeatures.sensor.gridx,
                 y: saveState.reactorFeatures.sensor.gridy
             });
             dropSymbolOnSquare(dropTarget, reactorFeatures.sensor);
         }
         if (saveState.reactorFeatures.fuser) {
-            var dropTarget = symAtCoords(levelSquares, {
+            var dropTarget = symAtCoords(curReactor.levelSquares, {
                 x: saveState.reactorFeatures.fuser.gridx,
                 y: saveState.reactorFeatures.fuser.gridy
             });
@@ -539,7 +555,7 @@ function saveGreek(greek) {
 function loadGreek(greek, saveState) {
     var symbols = [];
     for (var sym of saveState) {
-        var sq = symAtCoords(levelSquares, { x: sym.gridx, y: sym.gridy }, false);
+        var sq = symAtCoords(curReactor.levelSquares, { x: sym.gridx, y: sym.gridy }, false);
         var symEl = window["symbol" + sym.name].place(greek, sq);
         window["symLoad" + sym.name](symEl, sym);
         if (symEl) {
@@ -575,26 +591,26 @@ window.symAtCoords = function(symbols, location, arrow) {
 }
 window.greek = function(name) {
     if (name == "Beta")
-        return beta;
-    if (name == "Alpha" || mode == alpha)
-        return alpha;
-    return beta;
+        return curReactor.beta;
+    if (name == "Alpha" || curReactor.mode == curReactor.alpha)
+        return curReactor.alpha;
+    return curReactor.beta;
 }
 window.greekOpposite = function (name) {
     if (name == "Beta")
-        return alpha;
+        return curReactor.alpha;
     if (name == "Alpha" )
-        return beta;
+        return curReactor.beta;
 }
 function makeBuildButtons(canvas) {
     var buttonpos = -40;
-    var buttonContainer = get('buttonContainer');
+    var buttonContainer = $(canvas).find('.buttonContainer')[0];
     if (!buttonContainer) {
         buttonContainer = make('div', canvas, '');
+        buttonContainer.classList.add("buttonContainer");
     }
     clear(buttonContainer);
     var greekMode = greek().mode;
-    buttonContainer.id = "buttonContainer";
     makebtns(greekMode, 'button', buttonContainer, 'Start (r)', mapsizex + 10, buttonpos += 50, "Start",
         function () { curSymbol = "Start" });
     makebtns(greekMode, 'button', buttonContainer, 'In (i)', mapsizex + 10, buttonpos += 50, "In",
@@ -603,7 +619,7 @@ function makeBuildButtons(canvas) {
         function () { curSymbol = "Out" }, 75);
     makebtns(greekMode, 'button', buttonContainer, 'Grab/Drop (g)', mapsizex + 10, buttonpos += 50, "Grab",
         function () { curSymbol = "Grab" });
-    if (reactorFeatures.bonderData && reactorFeatures.bonderData.length > 0) {
+    if (curReactor.reactorFeatures.bonderData && curReactor.reactorFeatures.bonderData.length > 0) {
         makebtns(greekMode, 'button', buttonContainer, 'Bond (b)', mapsizex + 10, buttonpos += 50, "Bond",
             function () { curSymbol = "Bond" });
     }
@@ -611,11 +627,11 @@ function makeBuildButtons(canvas) {
         function () { curSymbol = "Rotate" });
     makebtns(greekMode, 'button', buttonContainer, 'Sync (y)', mapsizex + 10, buttonpos += 50, "Sync",
         function () { curSymbol = "Sync" });
-    if (reactorFeatures.sensor) {
+    if (curReactor.reactorFeatures.sensor) {
         makebtns(greekMode, 'button', buttonContainer, 'Sensor (n)', mapsizex + 10, buttonpos += 50, "Sensor",
             function () { curSymbol = "Sensor" });
     }
-    if (reactorFeatures.fuser) {
+    if (curReactor.reactorFeatures.fuser) {
         makebtns(greekMode, 'button', buttonContainer, 'Fuse (f)', mapsizex + 10, buttonpos += 50, "Fuse",
             function () { curSymbol = "Fuse" });
     }
@@ -638,9 +654,9 @@ function makeBuildButtons(canvas) {
 }
 function switchGreek(greekMode, canvas) {
     if (greekMode == 'Alpha') {
-        mode = beta;
+        curReactor.mode = curReactor.beta;
     } else {
-        mode = alpha;
+        curReactor.mode = curReactor.alpha;
     }
     makeBuildButtons(canvas);
 }
@@ -651,12 +667,12 @@ function deselBtns(container) {
 }
 function makeRunButtons(canvas) {
     var buttonpos = -40;
-    var buttonContainer = get('buttonContainer');
+    var buttonContainer = $(canvas).find('.buttonContainer')[0];
     if (!buttonContainer) {
         buttonContainer = make('div', canvas, '');
+        buttonContainer.classList.add("buttonContainer");
     }
     clear(buttonContainer);
-    buttonContainer.id = "buttonContainer";
     
     makebtn('button', buttonContainer, 'Stop', mapsizex + 10, buttonpos += 50, function () {
         stopGame(canvas);
@@ -682,14 +698,16 @@ function makeRunButtons(canvas) {
 }
 function stopGame(canvas) {
     clearIntervals();
-    delElement(alpha.waldo);
-    delElement(beta.waldo);
-    clear(get("elements"));
-    alpha.waldo = null;
-    beta.waldo = null;
+    delElement(curReactor.alpha.waldo);
+    delElement(curReactor.beta.waldo);
+    clear(get("elements" + curReactor.id));
+    curReactor.alpha.waldo = null;
+    curReactor.beta.waldo = null;
     makeBuildButtons(canvas);
-    alpha.outReqs.count = alpha.outReqs.maxCount;
-    beta.outReqs.count = beta.outReqs.maxCount;
+    curReactor.alpha.outReqs.count = curReactor.alpha.outReqs.maxCount;
+    curReactor.beta.outReqs.count = curReactor.beta.outReqs.maxCount;
+    curReactor.alpha.entrance = [];
+    curReactor.beta.entrance = [];
     cycles = 0;
 }
 function makebtns(greekMode, tagname, parent, text, left, top, name, funct, width, height) {
@@ -697,7 +715,7 @@ function makebtns(greekMode, tagname, parent, text, left, top, name, funct, widt
     ret.classList.add('btn' + greekMode);
     ret.draggable = true;
     ret.onclick = function () {
-        deselBtns(get("buttonContainer"));
+        deselBtns($(".buttonContainer")[0]);
         ret.classList.add("selected");
         funct();
     }
@@ -711,13 +729,13 @@ function makebtns(greekMode, tagname, parent, text, left, top, name, funct, widt
     return ret;
 }
 function deselectAll() {
-    for (var i = 0; i < alpha.symbols.length; i++) {
-        var sym = alpha.symbols[i];
+    for (var i = 0; i < curReactor.alpha.symbols.length; i++) {
+        var sym = curReactor.alpha.symbols[i];
         sym.selected = false;
         sym.classList.remove("selected");
     }
-    for (var i = 0; i < beta.symbols.length; i++) {
-        var sym = beta.symbols[i];
+    for (var i = 0; i < curReactor.beta.symbols.length; i++) {
+        var sym = curReactor.beta.symbols[i];
         sym.selected = false;
         sym.classList.remove("selected");
     }

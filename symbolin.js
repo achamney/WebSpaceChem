@@ -4,15 +4,15 @@
         var sym = makesym('div', sq, 'symbol in In' + greek.mode + ' ' + greek.mode, 0, 0, 50, 50, createInSubButtons(greek));
         sym.greek = greek.mode;
         sym.name = "In";
-        sym.performAction = makePerfActionFn(sym, greek);
+        sym.performAction = makeInPerfActionFn(sym, greek);
         setGrid(sym, sq, sq);
         return sym;
     }
 }
-function makePerfActionFn(sym, greek) {
+window.makeInPerfActionFn = function(sym, greek) {
     return function (greekName, greekMode) {
-        var yMod = sym.greek == beta.mode ? 4 : 0;
-        var elements = get("elements");
+        var yMod = sym.greek == curReactor.beta.mode ? 4 : 0;
+        var elements = get("elements"+greek.reactorId);
         var inData = window.greek(sym.greek).in;
         makeElement(inData, elements,
             10, 8, 20, 20, yMod);
@@ -70,7 +70,7 @@ function getElByGrid(elements, x, y) {
 }
 function createInSubButtons(greek) {
     return function (sym) {
-        var butList = [], parent = get("symButtons");
+        var butList = [], parent = get("symButtons"+curReactor.id);
         var xoffset = -200;
         var selSym = greek.symbols.filter(s => s.selected)[0];
         clear(parent);
@@ -120,3 +120,19 @@ window.symLoadIn = function (symEl, saveState) {
         symEl.classList.remove("InAlpha");
     }
 };
+
+window.prodInFn = function (sym, greek) {
+    return function (greekName, greekMode) {
+        if (greek.entrance.length > 0) {
+            var elContainer = greek.entrance[0];
+            var inData = makeInDataFromElements(elContainer);
+            var elements = get("elements" + greek.reactorId);
+            var yMod = sym.greek == curReactor.beta.mode ? 4 : 0;
+            makeElement(inData, elements, 10, 8, 20, 20, yMod);
+            delElement(elContainer);
+            greek.entrance.shift();
+        } else {
+            greek.waldo.action = "in";
+        }
+    };
+}

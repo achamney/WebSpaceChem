@@ -6,7 +6,8 @@
         sym.bond = "bond";
         sym.name = "Bond";
         sym.performAction = function (greekName, g) {
-            var bonders = reactorFeatures.bonders.filter(feat => feat.type == "bonder");
+            var elements = get("elements" + curReactor.id);
+            var bonders = curReactor.reactorFeatures.bonders.filter(feat => feat.type == "bonder");
             var bonded = [];
             for (var b1 of bonders) {
                 for (var b2 of bonders) {
@@ -98,7 +99,7 @@ function removeBonds(element, orphan) {
 }
 function createBondSubButtons(greek) {
     return function (sym) {
-        var butList = [], parent = get("symButtons");
+        var butList = [], parent = get("symButtons" + curReactor.id);
         var xoffset = -200;
         var selSym = greek.symbols.filter(s => s.selected)[0];
         clear(parent);

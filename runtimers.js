@@ -1,8 +1,8 @@
 window.run = function(canvas, moveTime, symbolTime) {
     if (alpha.startSymbol)
-        runSetup(canvas, alpha, "Alpha");
+        runSetup(canvas, curReactor.alpha, "Alpha");
     if (beta.startSymbol)
-        runSetup(canvas, beta, "Beta");
+        runSetup(canvas, curReactor.beta, "Beta");
 
     moveTime = moveTime || 30;
     symbolTime = symbolTime || 1000;
@@ -13,11 +13,11 @@ window.run = function(canvas, moveTime, symbolTime) {
     // Move
     if (moveTime < symbolTime) {
         window.moveInterval = window.setInterval(function () {
-            if (alpha.startSymbol)
-                moveRunTimer(alpha, "Alpha", timeInterval);
-            if (beta.startSymbol)
-                moveRunTimer(beta, "Beta", timeInterval);
-            checkCollisions();
+            if (curReactor.alpha.startSymbol)
+                moveRunTimer(curReactor.alpha, "Alpha", timeInterval);
+            if (curReactor.beta.startSymbol)
+                moveRunTimer(curReactor.beta, "Beta", timeInterval);
+            checkCollisions(curReactor);
         }, moveTime);
     }
 
@@ -31,9 +31,9 @@ window.run = function(canvas, moveTime, symbolTime) {
             activateRunTimer(alpha, "Alpha");
         if (beta.startSymbol)
             activateRunTimer(beta, "Beta");
-        checkCollisions();
-        headerAlpha.innerHTML = makeHeader(alpha, "α");
-        headerBeta.innerHTML = makeHeader(beta, "β");
+        checkCollisions(curReactor);
+        curReactor.headerAlpha.innerHTML = makeHeader(alpha, "α");
+        curReactor.headerBeta.innerHTML = makeHeader(beta, "β");
         cycles++;
         checkWin();
     }, symbolTime);
@@ -90,7 +90,7 @@ function activateMoveRunTimer(greek, greekMode) {
 }
 function activateRunTimer(greek, greekMode) {
     if (greek.waldo.action == "move") {
-        
+
         var arrowSym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy }, true);
         var actionSym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy }, false);
         if (arrowSym) {
@@ -104,7 +104,20 @@ function activateRunTimer(greek, greekMode) {
         //adjustBondBars
         greek.waldo.action = "move";
     } else if (greek.waldo.action == "sync") {
-    } else {
+    }
+    else if (greek.waldo.action == "in") {
+        if (greek.entrance.length > 0) {
+            var sym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy });
+            var yMod = sym.greek == curReactor.beta.mode ? 4 : 0;
+            var elements = get("elements" + greek.reactorId);
+            var inData = makeInDataFromElements(greek.entrance[0]);
+            makeElement(inData, elements, 10, 8, 20, 20, yMod);
+            greek.waldo.action = "move";
+            delElement(greek.entrance[0]);
+            greek.entrance.shift();
+        }
+    }
+    else {
         var actionSym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy }, false);
         if (actionSym) {
             actionSym.performAction(greek, greekMode);
@@ -122,8 +135,8 @@ window.clearIntervals = function() {
     }
 }
 
-function checkCollisions() {
-    var elementParent = get("elements");
+function checkCollisions(reactor) {
+    var elementParent = get("elements"+reactor.id);
     for (var el of elementParent.childNodes) {
         var elLeft = parseInt(el.style.left),
             elTop = parseInt(el.style.top);

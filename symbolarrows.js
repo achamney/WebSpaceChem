@@ -52,7 +52,7 @@ window.symbolDown = {
 };
 window.makeDelButton = function(greek) {
     return function (sym) {
-        var parent = get("symButtons");
+        var parent = get("symButtons" + curReactor.id);
         clear(parent);
         makebtn('button', parent, 'Delete', mapsizex / 2 - 50, mapsizey, function () {
             delElement(sym);

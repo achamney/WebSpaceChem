@@ -1,16 +1,19 @@
-var modal = document.getElementById("myModal");
-// Get the <span> element that closes the modal
-var span = document.getElementsByClassName("close")[0];
-// When the user clicks on <span> (x), close the modal
-span.onclick = function () {
-    modal.style.display = "none";
-}
-// When the user clicks anywhere outside of the modal, close it
-document.addEventListener("click", function (event) {
-    if (event.target == modal) {
+window.setupModal = function (id) {
+    var modal = document.getElementById(id);
+    // Get the <span> element that closes the modal
+    var span = $(modal).find(".close")[0];
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function () {
         modal.style.display = "none";
     }
-});
+    // When the user clicks anywhere outside of the modal, close it
+    document.addEventListener("click", function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    });
+}
+setupModal("myModal");
 
 window.openHighScores = function () {
     modal.style.display = "block";

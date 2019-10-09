@@ -54,7 +54,7 @@ button {
 .particle {
     position: absolute;
     opacity: 0.5;
-    z-index: 100;
+    z-index: 1001;
     font-size:30px;
 }
     .particle.Alpha {
@@ -163,6 +163,10 @@ button {
     z-index:4;
     position: relative;
 }
+.elementsProd {
+    z-index: 1000;
+    position: relative;
+}
 .element {
     text-align: center;
     margin-top: auto;
@@ -240,6 +244,7 @@ button {
     position:absolute;
     border: 1px solid #33F;
     pointer-events: none;
+    z-index:1001;
 }
 .checkcontainer {
     display: block;
@@ -396,7 +401,22 @@ button {
 .centered {
     text-align:center;
 }
-
+.requirements {
+    position: absolute;
+    top: -85px;
+    background-color: white;
+    width: 100%;
+    height: 85px;
+}
+.req1,.req2 {
+    position: absolute;
+    top: -100px;
+    z-index:1;
+    right:0;
+}
+.req2 {
+    top: -80px;
+}
 
 
 /***PRODUCTION***/
@@ -417,4 +437,7 @@ button {
     font-size: 20px;
     font-weight: 700;
     text-align: center;
+}
+.prodElContainer{
+    position:absolute;
 }

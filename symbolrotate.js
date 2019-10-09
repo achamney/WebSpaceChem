@@ -15,7 +15,7 @@
 }
 function createRotateSubButtons(greek) {
     return function () {
-        var butList = [], parent = get("symButtons");
+        var butList = [], parent = get("symButtons" + curReactor.id);
         var selSym = greek.symbols.filter(s => s.selected)[0];
         var xoffset = -300;
         clear(parent);
