@@ -418,7 +418,7 @@ window.runProd = function (canvas, moveTime, symbolTime) {
     // ActivateSymbol
     window.activateInterval = window.setInterval(function () {    
         for (var reactor of reactors) {
-            curBuilding = reactor;
+            curReactor = reactor;
             if (reactor.alpha.startSymbol)
                 activateMoveRunTimer(reactor.alpha, "Alpha");
             if (reactor.beta.startSymbol)
@@ -493,8 +493,10 @@ window.makeInDataFromElements = function (elContainer, xmod) {
     }];
     for (var el of elContainer.childNodes) {
         var data = inData[0];
-        var boldData = el.bonds.map(b => b.id);
-        data.elements.push({ name: el.symbol, x: el.gridx - xmod, y: el.gridy, id: el.id, bonds: boldData });
+        var bondData = el.bonds.map(b => b.id);
+        //remove dupes
+        bondData = bondData.filter((item, pos) => bondData.indexOf(item) == pos);
+        data.elements.push({ name: el.symbol, x: el.gridx - xmod, y: el.gridy, id: el.id, bonds: bondData });
         for (var bond of el.bonds) {
             var otherBond = data.bonds.filter(b =>
                 (b.left == el.id && b.right == bond.id) ||
@@ -505,6 +507,10 @@ window.makeInDataFromElements = function (elContainer, xmod) {
                 data.bonds.push({ count: 1, left: el.id, right: bond.id });
             }
         }
+    }
+    // bonds are counted twice (once for each element). So divide count by 2
+    for (var bond of data.bonds) {
+        bond.count = bond.count / 2;
     }
     return inData;
 }

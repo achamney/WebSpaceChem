@@ -43,14 +43,14 @@ window.makeElement = function (inData, container, x, y, w, h, ymod) {
     }
     // Add bonds after adding all elements
     for (var inEl of chosenProb.elements) {
-        var element = getElByGrid(elements.childNodes, inEl.x, (inEl.y + ymod));
+        var element = outElements.filter(o => o.gridx == inEl.x && o.gridy == inEl.y + ymod)[0];
         if (inEl.bonds && inEl.bonds.length > 0) {
             for (var elId of inEl.bonds) {
                 var bondingElData = chosenProb.elements.filter(d => d.id == elId)[0];
                 var bondData = chosenProb.bonds.filter(b => (b.left == element.elId && b.right == bondingElData.id) ||
                     (b.right == element.elId && b.left == bondingElData.id))[0];
-                var bondingEl = getElByGrid(elements.childNodes,
-                    bondingElData.x, bondingElData.y + ymod);
+                var bondingEl = outElements.filter(o =>o.gridx ==
+                    bondingElData.x && o.gridy == bondingElData.y + ymod)[0];
                 for (var i = 0; i < bondData.count; i++) {
                     element.bonds.push(bondingEl);
                 }
