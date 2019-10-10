@@ -130,7 +130,7 @@ function traverseBondsIter(el, visit, visited) {
 }
 function createOutSubButtons(greek) {
     return function (sym) {
-        var butList = [], parent = get("symButtons");
+        var butList = [], parent = get("symButtons"+greek.reactorId);
         var xoffset = -200;
         var selSym = greek.symbols.filter(s => s.selected)[0];
         clear(parent);

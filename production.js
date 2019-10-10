@@ -26,7 +26,7 @@
             }
             for (var out of config.outReqs) {
                 if (out.x == i && out.y == j) {
-                    makeOut(sq, out);
+                    makeDeposit(sq, out);
                 }
             }
             productionSquares.push(sq);
@@ -55,6 +55,7 @@
     window.outFn = prodOutFn;
     window.stopReactor = stopGame;
     window.stopGame = stopProdGame;
+    loadProdSave();
 }
 function makePipe(container, direction, parent) {
     var pipe = makesq("div", container, "pipe", 0, 0, mapsizex / gridNumX, mapsizey / gridNumY);
@@ -76,6 +77,9 @@ function makePipe(container, direction, parent) {
         if (pipe.canMakeMore)
             window.currentDragPipe = pipe;
         return false;
+    }
+    pipe.getEntrance = function () {
+        return null;
     }
     pipes.push(pipe);
     resetEntrancePipes();
@@ -176,6 +180,7 @@ function setProdSqListeners(sq) {
                 currentDragPipe = pipeOnSq;
                 currentDragPipe.canMakeMore = true;
             }
+            saveProd();
         }
     }
 }
@@ -192,6 +197,53 @@ function makeProdBottomButtons() {
     });
 }
 function saveProd() {
+    window.saveNumber = window.saveNumber || 0;
+    saveNumber++;
+    if (saveNumber >= 20) {
+        saveNumber = 1;
+    }
+    var saveState = {
+        reactors: [],
+        pipes: []
+    }
+    for (var reactor of reactors) {
+        saveState.reactors.push({
+            alpha: saveGreek(reactor.alpha),
+            beta: saveGreek(reactor.beta),
+            reactorFeatures: saveReactorFeatures(reactor),
+            type: reactor.type,
+            x: reactor.gridx,
+            y: reactor.gridy
+        });
+    }
+    for (var pipe of pipes) {
+        var downstream = pipe.downstream;
+        if (downstream && !pipe.downstream.direction) {
+            downstream == null;
+        }
+        var upstream = pipe.upstream;
+        if (upstream && !pipe.upstream.direction) {
+            upstream == null;
+        }
+        saveState.pipes.push({
+            x: pipe.gridx,
+            y: pipe.gridy,
+            id: pipe.id,
+            downstream: downstream && downstream.id,
+            upstream: upstream && upstream.id,
+            direction: pipe.direction
+        });
+    }
+    var stringSave = JSON.stringify(saveState);
+    localStorage.setItem(window.levelName + (saveNumber), stringSave);
+    localStorage.setItem(levelName + "last", saveNumber);
+    var level = personalData.levels.filter(l => l.name == levelName)[0];
+    if (!level) {
+        level = { name: levelName };
+        personalData.levels.push(level);
+    }
+    level.save = saveState;
+    updatePersonalData();
 }
 
 function deleteReactorPipes(reactor) {
@@ -400,7 +452,7 @@ window.runProd = function (canvas, moveTime, symbolTime) {
                 if (!buildingEntrance) {
                     curBuilding = null;
                 }
-                if (curPipe && curPipe.downstream && (!curBuilding || !curBuilding.alpha)) {
+                if (curPipe && curPipe.downstream && (!curBuilding || !curBuilding.hasEntrance)) {
                     curPipe.curElement = el;
                     el.direction = curPipe.downstream.direction || { x: 0, y: 0 };
                 } else if (curBuilding && buildingEntrance) {
@@ -419,10 +471,7 @@ window.runProd = function (canvas, moveTime, symbolTime) {
             }
         }
         cycles++;
-        checkProdWin();
     }, symbolTime);
-}
-function checkProdWin() {
 }
 function openReactor(reactor) {
     var modal = document.getElementById("reactorModal" + reactor.id);
@@ -480,5 +529,56 @@ function makeProdElement(parentSquare, inData) {
         el.classList.add('productionElement');
         el.style.left = (el.gridx * 4) + "px";
         el.style.top = (el.gridy * 4) + "px";
+    }
+}
+window.prodDeposit = function (elContainer) {
+    var el1 = elContainer.childNodes[0];
+    var meetsReqs = meetsRequirements(el1, { outReqs: outs[0].outData });
+    if (meetsReqs) {
+        delElement(elContainer);
+        config.outReqs[0].count--;
+        if (config.outReqs[0].count == 0) {
+            alert("ss");
+            stopProdGame(get('canvas'));
+        }
+    } else {
+        alert("Error: Wrong molecule in out depot!");
+        stopProdGame(get('canvas'));
+    }
+}
+function loadProdSave() {
+    var lastSave = localStorage.getItem(window.levelName + "last");
+    window.saveNumber = parseInt(lastSave);
+    var saveStateJSON = localStorage.getItem(window.levelName + lastSave);
+    var saveState = JSON.parse(saveStateJSON);
+    if (!saveState) {
+        var level = personalData.levels.filter(l => l.name == levelName)[0];
+        if (level && level.save) {
+            saveState = level.save;
+        }
+    }
+    if (saveState) {
+        for (var reactor of saveState.reactors) {
+            var sq = symAtCoords(productionSquares, { x: reactor.x, y: reactor.y });
+            curReactorType = reactor.type;
+            var sym = window["reactor" + curReactorType].place(sq);
+            if (sym) {
+                reactors.push(sym);
+            }
+            loadReactor(reactor, reactors[reactors.length - 1]);
+        }
+        
+        for (var pipe of saveState.pipes) {
+            var sq = symAtCoords(productionSquares, { x: pipe.x, y: pipe.y });
+            var otherPipe = prodCollide(sq, null, { x: 1, y: 1 });
+            if (otherPipe || !pipe.upstream) {
+                continue;
+            }
+            var parent = get(pipe.upstream);
+            var newPipe = makePipe(sq, pipe.direction, parent);
+            newPipe.id = pipe.id;
+        }
+        resetEntrancePipes();
+        saveProd();
     }
 }

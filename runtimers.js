@@ -106,15 +106,16 @@ function activateRunTimer(greek, greekMode) {
     } else if (greek.waldo.action == "sync") {
     }
     else if (greek.waldo.action == "in") {
-        if (greek.entrance.length > 0) {
-            var sym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy });
+        var sym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy });
+        var entranceGreek = window.greek(sym.greek); 
+        if (entranceGreek.entrance.length > 0) {
             var yMod = sym.greek == curReactor.beta.mode ? 4 : 0;
             var elements = get("elements" + greek.reactorId);
-            var inData = makeInDataFromElements(greek.entrance[0]);
+            var inData = makeInDataFromElements(entranceGreek.entrance[0]);
             makeElement(inData, elements, 10, 8, 20, 20, yMod);
             greek.waldo.action = "move";
-            delElement(greek.entrance[0]);
-            greek.entrance.shift();
+            delElement(entranceGreek.entrance[0]);
+            entranceGreek.entrance.shift();
         }
     }
     else {

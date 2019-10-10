@@ -12,14 +12,17 @@ window.makeSource = function (sq, inData) {
     }
     sources.push(source);
 }
-window.makeOut = function (sq, outData) {
+window.makeDeposit = function (sq, outData) {
     var outEl = makesq("div", sq, "building out", 0, 0, outData.w * mapsizex / gridNumX, outData.h * mapsizey / gridNumY);
     setGrid(outEl, sq, sq);
     outEl.outData = outData;
     outEl.w = outData.w;
     outEl.h = outData.h;
     outEl.innerHTML = "<div class='buildingtext'>" + outData.elements[0].name + "&#9654;</div>";
-    outEl.entrance = [];
+    outEl.entrance = {
+        push: prodDeposit
+    };
+    outEl.hasEntrance = true;
     outEl.getEntrance = function (x, y) {
         var diff = y - outEl.gridy;
         if (diff == 1) {
@@ -28,6 +31,8 @@ window.makeOut = function (sq, outData) {
         return null;
     };
     outEl.link = function () { };
+    var outReqBox = make("div", outEl, "outReqBox");
+    makeInOutBox(outReqBox, outData.elements, outData.bonds, "", 0);
     outs.push(outEl);
 }
 window.reactorstandard = {
@@ -44,7 +49,7 @@ window.reactorstandard = {
         var pipe2Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 2 });
         sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
         sym.outPipes.push(makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
-        reactorCommon(sym);
+        reactorCommon(sym, "standard");
         sym.getEntrance = function (x, y) {
             var diffy = y - sym.gridy;
             if (diffy == 1) {
@@ -58,23 +63,24 @@ window.reactorstandard = {
         sym.link = function (pipe, entrance) {
             var greekLoc = pipe.gridy - sym.gridy;
             var source = getSourceFromPipe(pipe);
-            var greek = greekLoc == 1 ? reactor.alpha : reactor.beta;
+            var greek = greekLoc == 1 ? sym.alpha : sym.beta;
             if (source.inData) {
                 greek.in = source.inData.inProb;
             } else {
                 greek.in = [];
             }
-            makeRequirements(getReactorCanvas(reactor), reactor);
+            makeRequirements(getReactorCanvas(sym), sym);
         }
         return sym;
     }
 };
-function reactorCommon(sym) {
+function reactorCommon(sym, name) {
     var contentContainer = getReactorCanvas(sym);
     make("div", contentContainer, "requirements");
     var els = make("div", contentContainer, "elementsProd");
     els.id = `elements${sym.id}`;
-
+    sym.type = name;
+    sym.hasEntrance = true;
     var config = {
         alpha: {
             in: [], outReqs: {}

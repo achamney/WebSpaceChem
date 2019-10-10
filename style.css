@@ -441,3 +441,15 @@ button {
 .prodElContainer{
     position:absolute;
 }
+.outReqBox .bondbar {
+    z-index:1000;
+}
+.outReqBox {
+    position: absolute;
+    left: 50px;
+    top: 0;
+    background-color: #EEE;
+    display: block;
+    width: 80px;
+    height: 80px;
+}

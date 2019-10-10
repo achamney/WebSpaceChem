@@ -58,6 +58,9 @@ function beginButtonFn() {
         config.style.display = "none";
         get("configContainer").style.display = "none";
         loadGame(configJson, 'canvas', {});
+        if (!configJson.production) {
+            load();
+        }
     } catch (e) {
         alert("Error parsing configuration file, try again");
     }
@@ -111,7 +114,6 @@ function loadGame(config, container, reactor) {
     window.curReactor = reactor;
     makeUI(reactor, canvas);
     makeKeyListeners(reactor, canvas);
-    load();
 }
 function makeUI(reactor, canvas) {
 
@@ -254,6 +256,7 @@ function makeInOutBox(container, elements, bonds, greekMode, offsetx, size) {
                         sym.gridy = j;
                         sym.innerHTML = el.name;
                         sym.elId = el.id;
+                        sym.draggable = false;
                         syms.push(sym);
                     }
                 }
@@ -450,9 +453,9 @@ function setSqListeners(sq) {
 
 window.save = function() {
     var saveState = {
-        alpha: saveGreek(alpha),
-        beta: saveGreek(beta),
-        reactorFeatures: saveReactorFeatures()
+        alpha: saveGreek(curReactor.alpha),
+        beta: saveGreek(curReactor.beta),
+        reactorFeatures: saveReactorFeatures(curReactor)
     };
     window.saveNumber = window.saveNumber || 0;
     saveNumber++;
@@ -470,23 +473,23 @@ window.save = function() {
     level.save = saveState;
     updatePersonalData();
 }
-function saveReactorFeatures() {
+function saveReactorFeatures(reactor) {
     var saveFeatures = { bonders: []};
-    if (reactorFeatures.bonders) {
-        for (var bonder of reactorFeatures.bonders) {
+    if (reactor.reactorFeatures.bonders) {
+        for (var bonder of reactor.reactorFeatures.bonders) {
             saveFeatures.bonders.push({ gridx: bonder.gridx, gridy: bonder.gridy });
         }
     }
-    if (reactorFeatures.sensor) {
+    if (reactor.reactorFeatures.sensor) {
         saveFeatures.sensor = {
-            gridx: reactorFeatures.sensor.gridx,
-            gridy: reactorFeatures.sensor.gridy
+            gridx: reactor.reactorFeatures.sensor.gridx,
+            gridy: reactor.reactorFeatures.sensor.gridy
         };
     }
-    if (reactorFeatures.fuser) {
+    if (reactor.reactorFeatures.fuser) {
         saveFeatures.fuser = {
-            gridx: reactorFeatures.fuser.gridx,
-            gridy: reactorFeatures.fuser.gridy
+            gridx: reactor.reactorFeatures.fuser.gridx,
+            gridy: reactor.reactorFeatures.fuser.gridy
         };
     }
     return saveFeatures;
@@ -514,34 +517,37 @@ function load() {
     deleteAll(curReactor.alpha);
     deleteAll(curReactor.beta);
     if (saveState) {
-        curReactor.alpha.symbols = loadGreek(alpha, saveState.alpha);
-        curReactor.beta.symbols = loadGreek(beta, saveState.beta);
-        curReactor.alpha.startSymbol && makePath(curReactor.alpha.startSymbol.parentSquare, curReactor.alpha);
-        curReactor.beta.startSymbol && makePath(curReactor.beta.startSymbol.parentSquare, curReactor.beta);
-        saveState.reactorFeatures = saveState.reactorFeatures || {};
-        if (saveState.reactorFeatures.bonders) {
-            for (var bonderId in saveState.reactorFeatures.bonders) {
-                var dropTarget = symAtCoords(curReactor.levelSquares, {
-                    x: saveState.reactorFeatures.bonders[bonderId].gridx,
-                    y: saveState.reactorFeatures.bonders[bonderId].gridy
-                });
-                dropSymbolOnSquare(dropTarget, reactorFeatures.bonders[bonderId]);
-            }
-        }
-        if (saveState.reactorFeatures.sensor) {
-            var dropTarget = symAtCoords(curReactor.levelSquares, {
-                x: saveState.reactorFeatures.sensor.gridx,
-                y: saveState.reactorFeatures.sensor.gridy
+        loadReactor(saveState, curReactor);
+    }
+}
+window.loadReactor = function(saveState, reactor) {
+    reactor.alpha.symbols = loadGreek(reactor.alpha, saveState.alpha);
+    reactor.beta.symbols = loadGreek(reactor.beta, saveState.beta);
+    reactor.alpha.startSymbol && makePath(reactor.alpha.startSymbol.parentSquare, reactor.alpha);
+    reactor.beta.startSymbol && makePath(reactor.beta.startSymbol.parentSquare, reactor.beta);
+    saveState.reactorFeatures = saveState.reactorFeatures || {};
+    if (saveState.reactorFeatures.bonders) {
+        for (var bonderId in saveState.reactorFeatures.bonders) {
+            var dropTarget = symAtCoords(reactor.levelSquares, {
+                x: saveState.reactorFeatures.bonders[bonderId].gridx,
+                y: saveState.reactorFeatures.bonders[bonderId].gridy
             });
-            dropSymbolOnSquare(dropTarget, reactorFeatures.sensor);
+            dropSymbolOnSquare(dropTarget, reactor.reactorFeatures.bonders[bonderId]);
         }
-        if (saveState.reactorFeatures.fuser) {
-            var dropTarget = symAtCoords(curReactor.levelSquares, {
-                x: saveState.reactorFeatures.fuser.gridx,
-                y: saveState.reactorFeatures.fuser.gridy
-            });
-            dropSymbolOnSquare(dropTarget, reactorFeatures.fuser);
-        }
+    }
+    if (saveState.reactorFeatures.sensor) {
+        var dropTarget = symAtCoords(reactor.levelSquares, {
+            x: saveState.reactorFeatures.sensor.gridx,
+            y: saveState.reactorFeatures.sensor.gridy
+        });
+        dropSymbolOnSquare(dropTarget, reactor.reactorFeatures.sensor);
+    }
+    if (saveState.reactorFeatures.fuser) {
+        var dropTarget = symAtCoords(reactor.levelSquares, {
+            x: saveState.reactorFeatures.fuser.gridx,
+            y: saveState.reactorFeatures.fuser.gridy
+        });
+        dropSymbolOnSquare(dropTarget, reactor.reactorFeatures.fuser);
     }
 }
 function saveGreek(greek) {

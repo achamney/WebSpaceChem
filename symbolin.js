@@ -123,14 +123,15 @@ window.symLoadIn = function (symEl, saveState) {
 
 window.prodInFn = function (sym, greek) {
     return function (greekName, greekMode) {
-        if (greek.entrance.length > 0) {
-            var elContainer = greek.entrance[0];
+        var entranceGreek = window.greek(sym.greek); 
+        if (entranceGreek.entrance.length > 0) {
+            var elContainer = entranceGreek.entrance[0];
             var inData = makeInDataFromElements(elContainer);
             var elements = get("elements" + greek.reactorId);
             var yMod = sym.greek == curReactor.beta.mode ? 4 : 0;
             makeElement(inData, elements, 10, 8, 20, 20, yMod);
             delElement(elContainer);
-            greek.entrance.shift();
+            entranceGreek.entrance.shift();
         } else {
             greek.waldo.action = "in";
         }
