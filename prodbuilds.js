@@ -5,10 +5,16 @@ window.makeSource = function (sq, inData) {
     source.inData = inData;
     source.w = inData.w;
     source.h = inData.h;
-    source.innerHTML = "<div class='buildingtext'>" + inData.inProb[0].elements[0].name + " &#9654;&#9654;</div>"
+    source.innerHTML = "<div class='buildingtext'>&#9654;&#9654;</div>"
     source.produceElement = function () {
         var parentSquare = source.downstream.parentSquare;
         makeProdElement(parentSquare, inData.inProb);
+    }
+    var xmod = 0;
+    for (var prob of inData.inProb) {
+        var inDetailBox = make("div", source, "inDetailBox");
+        makeInOutBox(inDetailBox, prob.elements, prob.bonds, "", xmod);
+        xmod -= 80;
     }
     sources.push(source);
 }

@@ -111,10 +111,13 @@ function activateRunTimer(greek, greekMode) {
         if (entranceGreek.entrance.length > 0) {
             var yMod = sym.greek == curReactor.beta.mode ? 4 : 0;
             var elements = get("elements" + greek.reactorId);
-            var inData = makeInDataFromElements(entranceGreek.entrance[0]);
+            var elContainer = entranceGreek.entrance[0];
+            var inData = makeInDataFromElements(elContainer);
+            var pipe = symAtCoords(pipes, { x: elContainer.prodx, y: elContainer.prody });
+            pipe.curElement = null;
             makeElement(inData, elements, 10, 8, 20, 20, yMod);
             greek.waldo.action = "move";
-            delElement(entranceGreek.entrance[0]);
+            delElement(elContainer);
             entranceGreek.entrance.shift();
         }
     }

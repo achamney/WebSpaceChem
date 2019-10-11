@@ -417,6 +417,7 @@ function dropSymSq(sq) {
                     }
                 }
             }
+            save();
         }
     }
 }
@@ -427,7 +428,6 @@ function dropSymbolOnSquare(dropTarget, symbol) {
     symbol.parentSquare = dropTarget;
     curReactor.alpha.startSymbol && makePath(curReactor.alpha.startSymbol.parentSquare, curReactor.alpha);
     curReactor.beta.startSymbol && makePath(curReactor.beta.startSymbol.parentSquare, curReactor.beta);
-    save();
 }
 function makeHeader(greek, greekSymbol) {
     var ret = "";

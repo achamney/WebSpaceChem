@@ -1,6 +1,6 @@
 window.makeParticle = function (x, y, html, greekMode, lifetime) {
     lifetime = lifetime || 1000;
-    var canvas = get("canvas");
+    var canvas = get("symButtons"+greekMode.reactorId);
     var el = makesq("div", canvas, "particle "+greekMode.mode, x, y, 10, 10);
     el.innerHTML = html;
 

@@ -126,6 +126,8 @@ window.prodInFn = function (sym, greek) {
         var entranceGreek = window.greek(sym.greek); 
         if (entranceGreek.entrance.length > 0) {
             var elContainer = entranceGreek.entrance[0];
+            var pipe = symAtCoords(pipes, { x: elContainer.prodx, y: elContainer.prody });
+            pipe.curElement = null;
             var inData = makeInDataFromElements(elContainer);
             var elements = get("elements" + greek.reactorId);
             var yMod = sym.greek == curReactor.beta.mode ? 4 : 0;

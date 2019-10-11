@@ -42,6 +42,11 @@
     for (var outReq of config.outReqs) {
         outReq.maxCount = outReq.count;
     }
+    window.outDisplays = [];
+    for (var depo of outs) {
+        outDisplays.push(make("h2", canvas, 'req', true));
+        outDisplays[outDisplays.length - 1].innerHTML = makeProdHeader(depo);
+    }
     window.curReactorType = "standard";
     window.currentDragPipe = null;
     makeProdBottomButtons();
@@ -56,6 +61,9 @@
     window.stopReactor = stopGame;
     window.stopGame = stopProdGame;
     loadProdSave();
+}
+function makeProdHeader(depo) {
+    return "Molecules Remaining: " + depo.outData.count;
 }
 function makePipe(container, direction, parent) {
     var pipe = makesq("div", container, "pipe", 0, 0, mapsizex / gridNumX, mapsizey / gridNumY);
@@ -172,15 +180,17 @@ function setProdSqListeners(sq) {
             var collided = prodCollide(sq, null, { x: 1, y: 1 });
             if (!pipeOnSq && !collided) {
                 currentDragPipe = makePipe(sq, dir, currentDragPipe);
+                saveProd();
             } else if (pipeOnSq != currentDragPipe && pipeOnSq != currentDragPipe.upstream) {
                 currentDragPipe = null;
+                saveProd();
             } else if (pipeOnSq == currentDragPipe.upstream) {
                 delElement(currentDragPipe);
                 pipes.splice(pipes.indexOf(currentDragPipe), 1);
                 currentDragPipe = pipeOnSq;
                 currentDragPipe.canMakeMore = true;
+                saveProd();
             }
-            saveProd();
         }
     }
 }
@@ -229,8 +239,8 @@ function saveProd() {
             x: pipe.gridx,
             y: pipe.gridy,
             id: pipe.id,
-            downstream: downstream && downstream.id,
-            upstream: upstream && upstream.id,
+            downstream: downstream && { x: downstream.gridx, y: downstream.gridy },
+            upstream: upstream && { x: upstream.gridx, y: upstream.gridy },
             direction: pipe.direction
         });
     }
@@ -370,6 +380,9 @@ function stopProdGame(canvas) {
         curReactor = reactor;
         stopReactor(getReactorCanvas(reactor));
     }
+    for (var pipe of pipes) {
+        pipe.curElement = null;
+    }
     cycles = 0;
 }
 function getReactorCanvas(reactor) {
@@ -407,9 +420,15 @@ window.runProd = function (canvas, moveTime, symbolTime) {
                 checkCollisions(reactor);
             }
             for (var element of elements.childNodes) {
-                if(element.state == "move"){
-                    incLeft(element, element.direction.x * xDistTick);
-                    incTop(element, element.direction.y * yDistTick);
+                if (element.state == "move") {
+                    var nextPipe = symAtCoords(pipes, {
+                        x: element.prodx + element.direction.x,
+                        y: element.prody + element.direction.y
+                    });
+                    if (!nextPipe.curElement) {
+                        incLeft(element, element.direction.x * xDistTick);
+                        incTop(element, element.direction.y * yDistTick);
+                    }
                 }
             }
         }, moveTime);
@@ -417,6 +436,40 @@ window.runProd = function (canvas, moveTime, symbolTime) {
 
     // ActivateSymbol
     window.activateInterval = window.setInterval(function () {    
+        for (var el of elements.childNodes) {
+            if (el.state == "move") {
+                var lastPipe = symAtCoords(pipes, {x: el.prodx, y: el.prody});
+                el.prodx += el.direction.x;
+                el.prody += el.direction.y;
+                var curPipe = symAtCoords(pipes, {x: el.prodx, y: el.prody});
+                if (curPipe && curPipe.curElement) {
+                    el.prodx -= el.direction.x;
+                    el.prody -= el.direction.y;
+                    curPipe = lastPipe;
+                } else {
+                    lastPipe.curElement = null;
+                }
+                el.style.left = (el.prodx*mapsizex/gridNumX)+"px";
+                el.style.top = (el.prody*mapsizey/gridNumY) + "px";
+                var curBuilding = prodCollide({ gridx: el.prodx+1, gridy: el.prody },
+                    el, { x: 1, y: 1 });
+                var buildingEntrance = curBuilding && curBuilding.getEntrance(el.prodx, el.prody);
+                if (!buildingEntrance) {
+                    curBuilding = null;
+                }
+                if (curPipe && curPipe.downstream && (!curBuilding || !curBuilding.hasEntrance)) {
+                    curPipe.curElement = el;
+                    el.direction = curPipe.downstream.direction || { x: 0, y: 0 };
+                } else if (curBuilding && buildingEntrance) {
+                    curPipe.curElement = el;
+                    buildingEntrance.push(el);
+                    el.state = "stop";
+                } else {
+                    el.state = "stop";
+                }
+            }
+        }
+
         for (var reactor of reactors) {
             curReactor = reactor;
             if (reactor.alpha.startSymbol)
@@ -431,44 +484,18 @@ window.runProd = function (canvas, moveTime, symbolTime) {
             reactor.headerAlpha.innerHTML = makeHeader(reactor.alpha, "&alpha;");
             reactor.headerBeta.innerHTML = makeHeader(reactor.beta, "&beta;");
         }
-        for (var el of elements.childNodes) {
-            if (el.state == "move") {
-                var lastPipe = symAtCoords(pipes, {x: el.prodx, y: el.prody});
-                el.prodx += el.direction.x;
-                el.prody += el.direction.y;
-                var curPipe = symAtCoords(pipes, {x: el.prodx, y: el.prody});
-                /*if (curPipe && curPipe.curElement) {
-                    el.prodx -= el.direction.x;
-                    el.prody -= el.direction.y;
-                    curPipe = lastPipe;
-                } else {
-                    lastPipe.curElement = null;
-                }*/
-                el.style.left = (el.prodx*mapsizex/gridNumX)+"px";
-                el.style.top = (el.prody*mapsizey/gridNumY) + "px";
-                var curBuilding = prodCollide({ gridx: el.prodx+1, gridy: el.prody },
-                    el, { x: 1, y: 1 });
-                var buildingEntrance = curBuilding && curBuilding.getEntrance(el.prodx, el.prody);
-                if (!buildingEntrance) {
-                    curBuilding = null;
-                }
-                if (curPipe && curPipe.downstream && (!curBuilding || !curBuilding.hasEntrance)) {
-                    curPipe.curElement = el;
-                    el.direction = curPipe.downstream.direction || { x: 0, y: 0 };
-                } else if (curBuilding && buildingEntrance) {
-                    buildingEntrance.push(el);
-                    el.state = "stop";
-                } else {
-                    el.state = "stop";
-                }
-            }
-        }
         for (var source of sources) {
             source.counter++;
             if (source.counter == 10) {
                 source.produceElement();
                 source.counter = 0;
             }
+        }
+
+        for (var i = 0; i < outs.length; i++) {
+            var depo = outs[i],
+                disp = outDisplays[i];
+            disp.innerHTML = makeProdHeader(depo);
         }
         cycles++;
     }, symbolTime);
@@ -536,11 +563,16 @@ function makeProdElement(parentSquare, inData) {
         el.style.left = (el.gridx * 4) + "px";
         el.style.top = (el.gridy * 4) + "px";
     }
+    $(elContainer).find(".bondbar").remove();
+    return elContainer;
 }
 window.prodDeposit = function (elContainer) {
+    // meets requirements recursively parses the nodes, only need to grab the first element
     var el1 = elContainer.childNodes[0];
     var meetsReqs = meetsRequirements(el1, { outReqs: outs[0].outData });
     if (meetsReqs) {
+        var pipe = symAtCoords(pipes, { x: elContainer.prodx, y: elContainer.prody });
+        pipe.curElement = null;
         delElement(elContainer);
         config.outReqs[0].count--;
         if (config.outReqs[0].count == 0) {
@@ -580,9 +612,11 @@ function loadProdSave() {
             if (otherPipe || !pipe.upstream) {
                 continue;
             }
-            var parent = get(pipe.upstream);
-            var newPipe = makePipe(sq, pipe.direction, parent);
-            newPipe.id = pipe.id;
+            var parent = prodCollide({
+                gridx: pipe.upstream.x,
+                gridy: pipe.upstream.y
+            }, null, { x: 1, y: 1 });
+            makePipe(sq, pipe.direction, parent);
         }
         resetEntrancePipes();
         saveProd();
