@@ -503,7 +503,7 @@ function deleteAll(greek) {
     deletePath(greek);
     greek.startSymbol = null;
 }
-function load() {
+window.load = function() {
     var lastSave = localStorage.getItem(window.levelName + "last");
     window.saveNumber = parseInt(lastSave);
     var saveStateJSON = localStorage.getItem(window.levelName + lastSave);

@@ -182,8 +182,8 @@ function checkWin() {
         if (!level.symbols) {
             level.cycles = cycles;
             level.symbols = symbols;
-        } 
-        openHighScores();
+        }
+        openHighScores(symbols);
         if (level.symbols) {
 
             if (symbols < level.symbols) {

@@ -60,7 +60,9 @@
     window.outFn = prodOutFn;
     window.stopReactor = stopGame;
     window.stopGame = stopProdGame;
+    window.load = loadProdSave;
     loadProdSave();
+    saveProd();
 }
 function makeProdHeader(depo) {
     return "Molecules Remaining: " + depo.outData.count;
@@ -95,8 +97,9 @@ function makePipe(container, direction, parent) {
 }
 function resetEntrancePipes() {
     for (var pipe of pipes) {
-        if (pipe.downstream && pipe.downstream.alpha) {
+        if (pipe.downstream && pipe.downstream.hasEntrance) {
             pipe.downstream = null;
+            pipe.classList.remove("link");
         }
         var building = prodCollide({ gridx: pipe.gridx + 1, gridy: pipe.gridy },
             pipe, { x: 1, y: 1 });
@@ -104,6 +107,7 @@ function resetEntrancePipes() {
             var entrance = building.getEntrance(pipe.gridx, pipe.gridy);
             if (entrance) {
                 pipe.downstream = building;
+                pipe.classList.add("link");
                 building.link(pipe, entrance);
             }
         }
@@ -200,6 +204,24 @@ function makeProdBottomButtons() {
     makebtn('button', buttonContainer, 'Back', -50 + (buttonpos += 155), mapsizey + 60, function () {
         location.reload();
     }).style.width = "50px";
+    makebtn('button', buttonContainer, 'Undo', -50 + (buttonpos += 55), mapsizey + 60, function () {
+        var lastSave = localStorage.getItem(window.levelName + "last");
+        lastSave--;
+        if (lastSave < 1) {
+            lastSave = 19;
+        }
+        localStorage.setItem(window.levelName + "last", lastSave);
+        loadProdSave();
+    }).style.width = "50px";
+    makebtn('button', buttonContainer, 'Redo', -50 + (buttonpos += 55), mapsizey + 60, function () {
+        var lastSave = localStorage.getItem(window.levelName + "last");
+        lastSave++;
+        if (lastSave >= 20) {
+            lastSave = 1;
+        }
+        localStorage.setItem(window.levelName + "last", lastSave);
+        loadProdSave();
+    }).style.width = "50px";
     makebtn('button', buttonContainer, 'Clear All', -50 + (buttonpos += 55), mapsizey + 60, function () {
         //deleteAll(alpha);
         //deleteAll(beta);
@@ -260,7 +282,7 @@ function deleteReactorPipes(reactor) {
     for (var outPipe of reactor.outPipes) {
         var curPipe = outPipe.downstream;
         outPipe.canMakeMore = true;
-        while (curPipe) {
+        while (curPipe && !curPipe.hasEntrance) {
             delElement(curPipe);
             pipes.splice(pipes.indexOf(curPipe), 1);
             curPipe = curPipe.downstream;
@@ -285,22 +307,25 @@ function makeProdDelButton() {
         var parent = get("symButtons");
         clear(parent);
         makebtn('button', parent, 'Delete', mapsizex / 2 - 50, mapsizey, function () {
-            delElement(selected);
-            var symInd = reactors.indexOf(selected);
-            if (~symInd) {
-                reactors.splice(symInd, 1);
-            }
-            delElement(get("reactorModal" + selected.id));
-            clear(parent);
-            if (selected.outPipes) {
-                deleteReactorPipes(selected);
-                for (var pipe of selected.outPipes) {
-                    pipes.splice(pipes.indexOf(pipe), 1);
-                    delElement(pipe);
-                }
-            }
+            deleteReactor(selected);
             saveProd();
         }, 100, 50);
+    }
+}
+function deleteReactor(reactor) {
+    delElement(reactor);
+    var symInd = reactors.indexOf(reactor);
+    if (~symInd) {
+        reactors.splice(symInd, 1);
+    }
+    delElement(get("reactorModal" + reactor.id));
+    clear(parent);
+    if (reactor.outPipes) {
+        deleteReactorPipes(reactor);
+        for (var pipe of reactor.outPipes) {
+            pipes.splice(pipes.indexOf(pipe), 1);
+            delElement(pipe);
+        }
     }
 }
 function makeProdBuildButtons(canvas) {
@@ -576,7 +601,31 @@ window.prodDeposit = function (elContainer) {
         delElement(elContainer);
         config.outReqs[0].count--;
         if (config.outReqs[0].count == 0) {
-            alert("ss");
+            var symbols = 0;
+            for (var reactor of reactors) {
+                symbols += reactor.alpha.symbols.length + reactor.beta.symbols.length;
+            }
+            clearIntervals();
+            var level = personalData.levels.filter(l => l.name == levelName)[0];
+            if (!level) {
+                level = { name: levelName };
+                personalData.levels.push(level);
+            }
+            if (!level.symbols) {
+                level.cycles = cycles;
+                level.symbols = symbols;
+            }
+            openHighScores(symbols);
+            if (level.symbols) {
+
+                if (symbols < level.symbols) {
+                    level.symbols = symbols;
+                }
+                if (cycles < level.cycles) {
+                    level.cycles = cycles;
+                }
+            }
+            updatePersonalData();
             stopProdGame(get('canvas'));
         }
     } else {
@@ -596,6 +645,10 @@ function loadProdSave() {
         }
     }
     if (saveState) {
+        for (var i = reactors.length - 1; i >= 0; i--) {
+            var reactor = reactors[i];
+            deleteReactor(reactor);
+        }
         for (var reactor of saveState.reactors) {
             var sq = symAtCoords(productionSquares, { x: reactor.x, y: reactor.y });
             curReactorType = reactor.type;
@@ -619,6 +672,5 @@ function loadProdSave() {
             makePipe(sq, pipe.direction, parent);
         }
         resetEntrancePipes();
-        saveProd();
     }
 }
