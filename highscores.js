@@ -1,5 +1,5 @@
 window.setupModal = function (id) {
-    var modal = document.getElementById(id);
+    window.modal = document.getElementById(id);
     // Get the <span> element that closes the modal
     var span = $(modal).find(".close")[0];
     // When the user clicks on <span> (x), close the modal
@@ -21,7 +21,7 @@ window.openHighScores = function () {
     contentContainer.style.height = "400px";
     clear(contentContainer);
     var curScoreText = make("div", contentContainer, "");
-    var symbols = alpha.symbols.length + beta.symbols.length;
+    var symbols = curReactor.alpha.symbols.length + curReactor.beta.symbols.length;
     curScoreText.innerHTML = "Mission successful. Total symbols: [" + (symbols) +
         "]. Total cycles: [" + cycles + "].";
     var level = personalData.levels.filter(l => l.name == levelName)[0];

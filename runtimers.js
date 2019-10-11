@@ -1,7 +1,7 @@
 window.run = function(canvas, moveTime, symbolTime) {
-    if (alpha.startSymbol)
+    if (curReactor.alpha.startSymbol)
         runSetup(canvas, curReactor.alpha, "Alpha");
-    if (beta.startSymbol)
+    if (curReactor.beta.startSymbol)
         runSetup(canvas, curReactor.beta, "Beta");
 
     moveTime = moveTime || 30;
@@ -23,17 +23,17 @@ window.run = function(canvas, moveTime, symbolTime) {
 
     // ActivateSymbol
     window.activateInterval = window.setInterval(function () {
-        if (alpha.startSymbol)
-            activateMoveRunTimer(alpha, "Alpha");
-        if (beta.startSymbol)
-            activateMoveRunTimer(beta, "Beta");
-        if (alpha.startSymbol)
-            activateRunTimer(alpha, "Alpha");
-        if (beta.startSymbol)
-            activateRunTimer(beta, "Beta");
+        if (curReactor.alpha.startSymbol)
+            activateMoveRunTimer(curReactor.alpha, "Alpha");
+        if (curReactor.beta.startSymbol)
+            activateMoveRunTimer(curReactor.beta, "Beta");
+        if (curReactor.alpha.startSymbol)
+            activateRunTimer(curReactor.alpha, "Alpha");
+        if (curReactor.beta.startSymbol)
+            activateRunTimer(curReactor.beta, "Beta");
         checkCollisions(curReactor);
-        curReactor.headerAlpha.innerHTML = makeHeader(alpha, "α");
-        curReactor.headerBeta.innerHTML = makeHeader(beta, "β");
+        curReactor.headerAlpha.innerHTML = makeHeader(curReactor.alpha, "&alpha;");
+        curReactor.headerBeta.innerHTML = makeHeader(curReactor.beta, "&beta;");
         cycles++;
         checkWin();
     }, symbolTime);
@@ -164,15 +164,15 @@ function checkCollisions(reactor) {
 }
 function checkWin() {
     var winGame = true;
-    if (alpha.outReqs.count && alpha.outReqs.count > 0) {
+    if (curReactor.alpha.outReqs.count && curReactor.alpha.outReqs.count > 0) {
         winGame = false;
     }
     
-    if (beta.outReqs.count && beta.outReqs.count  > 0) {
+    if (curReactor.beta.outReqs.count && curReactor.beta.outReqs.count  > 0) {
         winGame = false;
     }
     if (winGame) {
-        var symbols = alpha.symbols.length + beta.symbols.length;
+        var symbols = curReactor.alpha.symbols.length + curReactor.beta.symbols.length;
         clearIntervals();
         var level = personalData.levels.filter(l => l.name == levelName)[0];
         if (!level) {

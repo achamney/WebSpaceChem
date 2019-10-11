@@ -22,14 +22,14 @@ window.outFn = function (sym, greek) {
             if (element && !elementsGrabbed(element)) {
                 if (sym.greek == "Alpha") {
                     if (checkAllInBounds(element, boundsFn)
-                        && meetsRequirements(element, alpha)) {
+                        && meetsRequirements(element, curReactor.alpha)) {
                         performOut(curReactor.alpha, greek, element, outed);
                         outed = true;
                     }
                 }
                 else if (sym.greek == "Beta") {
                     if (checkAllInBounds(element, (x, y) => x > 5 && y >= 4)
-                        && meetsRequirements(element, beta)) {
+                        && meetsRequirements(element, curReactor.beta)) {
                         performOut(curReactor.beta, greek, element, outed);
                         outed = true;
                     }

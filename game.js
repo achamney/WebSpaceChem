@@ -57,7 +57,7 @@ function beginButtonFn() {
         beginButton.style.display = "none";
         config.style.display = "none";
         get("configContainer").style.display = "none";
-        loadGame(configJson, 'canvas', {});
+        loadGame(configJson, 'canvas', {id:""});
         if (!configJson.production) {
             load();
         }
@@ -159,7 +159,7 @@ function makeUI(reactor, canvas) {
     makeRequirements(canvas, reactor);
 }
 window.makeRequirements = function (canvas, reactor) {
-    var reqDiv = $(canvas).find('.requirements')[0];
+    var reqDiv = $(canvas).find('.reqs')[0];
     clear(reqDiv);
     var extra = makeInBox(reqDiv, reactor.alpha.in, reactor.alpha.mode, 0);
     makeInBox(reqDiv, reactor.beta.in, reactor.beta.mode, 100 + extra);

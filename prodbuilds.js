@@ -82,7 +82,7 @@ window.reactorstandard = {
 };
 function reactorCommon(sym, name) {
     var contentContainer = getReactorCanvas(sym);
-    make("div", contentContainer, "requirements");
+    make("div", contentContainer, "reqs");
     var els = make("div", contentContainer, "elementsProd");
     els.id = `elements${sym.id}`;
     sym.type = name;
