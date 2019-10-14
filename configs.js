@@ -1,6 +1,7 @@
 window.configs = [
     {
-        "name": "Sernimir II",
+        "name": "Sernimir II: Introduction",
+        "section": "Sernimir II",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -24,6 +25,7 @@ window.configs = [
     },
     {
         "name": "Sernimir II: Slightly different",
+        "section": "Sernimir II",
         "alpha": {
             "in": [],
             "inBonds": [],
@@ -51,6 +53,7 @@ window.configs = [
     },
     { 
         "name": "Sernimir II: Crossover",
+        "section": "Sernimir II",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -83,6 +86,7 @@ window.configs = [
     },
     {
         "name": "Sernimir II: An introduction to bonding",
+        "section": "Sernimir II",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -111,6 +115,7 @@ window.configs = [
     },
     {
         "name": "Sernimir II: A brief history of SpaceChem",
+        "section": "Sernimir II",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -140,6 +145,7 @@ window.configs = [
     },
     {
         "name": "Sernimir IV: Double Bonds",
+        "section": "Sernimir IV",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -163,6 +169,7 @@ window.configs = [
     },
     {
         "name": "Sernimir IV: Best Left Unanswered",
+        "section": "Sernimir IV",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -186,6 +193,7 @@ window.configs = [
     },
     {
         "name": "Sernimir IV: Multiple Outputs",
+        "section": "Sernimir IV",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -215,7 +223,74 @@ window.configs = [
         bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }]
     },
     {
+        "name": "Sernimir IV: An Introduction to Pipelines",
+        "section": "Sernimir IV",
+        "in": [{
+            "inProb": [{
+                "probability": 100,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": []
+            }],
+            x: 4, y: 1, w: 5, h: 6
+        }, {
+            "inProb": [{
+                "probability": 100,
+                "elements": [{
+                    "name": "O", "id": "o1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": []
+            }],
+            x: 5, y: 8, w: 5, h: 6
+            }],
+        "outReqs": [{
+            "count": 40,
+            "elements": [{ "name": "O", "id": "o1", x: 1, y: 1 }],
+            "bonds": [],
+            x: 23, y: 8, w: 2, h: 3
+        }, {
+            "count": 40,
+            "elements": [{ "name": "H", "id": "h1", x: 1, y: 1 }],
+            "bonds": [],
+            x: 23, y: 14, w: 2, h: 3
+        }],
+		"production": true
+    },
+    {
+        "name": "Sernimir IV: There's something in fishcake",
+        "section": "Sernimir IV",
+        "in": [{
+            "inProb": [{
+                "probability": 100,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": []
+            }],
+            x: 4, y: 1, w: 5, h: 6
+        }, {
+            "inProb": [{
+                "probability": 100,
+                "elements": [{
+                    "name": "Cl", "id": "cl1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": []
+            }],
+            x: 5, y: 8, w: 5, h: 6
+            }],
+        "outReqs": [{
+            "count": 40,
+            "elements": [{ "name": "H", "id": "h1", x: 1, y: 1, "bonds":["cl1"]},
+            { "name": "Cl", "id": "cl1", x: 2, y: 1, "bonds":["h1"]}],
+            "bonds": [{count: 1, left:"h1", right:"cl1"}],
+            x: 23, y: 8, w: 2, h: 3
+        }],
+		"production": true
+    },
+    {
         "name": "Sernimir IV: Sleepless on Sernimir IV",
+        "section": "Sernimir IV",
         "in": [{
             "inProb": [{
                 "probability": 100,
@@ -255,6 +330,7 @@ window.configs = [
     },
     {
         "name": "Danopth: Every day is the First Day",
+        "section": "Danopth",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -287,6 +363,7 @@ window.configs = [
     },
     {
         "name": "Danopth: It Takes Three",
+        "section": "Danopth",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -320,6 +397,7 @@ window.configs = [
     },
     {
         "name": "Danopth: Split Before Bonding",
+        "section": "Danopth",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -358,7 +436,59 @@ window.configs = [
         bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }]
     },
     {
+        "name": "Danopth: Settling Into the New Routine",
+        "section": "Danopth",
+        "in": [{
+            "inProb": [{
+                "probability": 100,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 0, "y": 1, "bonds": ["c1"]
+                },{
+                    "name": "H", "id": "h2", "x": 2, "y": 1, "bonds": ["c1"]
+                },{
+                    "name": "H", "id": "h3", "x": 1, "y": 0, "bonds": ["c1"]
+                },{
+                    "name": "H", "id": "h4", "x": 1, "y": 2, "bonds": ["c1"]
+                },{
+                    "name": "C", "id": "c1", "x": 1, "y": 1, "bonds": ["h1","h2","h3","h4"]
+                }],
+                "bonds": [{count:1, left:"h1", right:"c1"},
+                {count:1, left:"h2", right:"c1"},
+                {count:1, left:"h3", right:"c1"},
+                {count:1, left:"h4", right:"c1"}]
+            }],
+            x: 8, y: 2, w: 2, h: 5
+        }],
+        "outReqs": [{
+            "count": 40,
+            "elements": [{ "name": "H", "id": "h1", x: 1, y: 1, bonds:["h2"] }, 
+                { "name": "H", "id": "h2", x: 2, y: 1, bonds: ["h1"] }],
+            "bonds": [{ "count": 1, "left": "h1", "right": "h2" }],
+            x: 24, y: 12, w: 2, h: 3
+        }, {
+            "count": 40,
+            "elements": [{ "name": "H", "id": "h1", x: 0, y: 1, bonds:["c1"]}, 
+                { "name": "H", "id": "h2", x: 1, y: 0, bonds:["c1"] },
+                { "name": "H", "id": "h3", x: 1, y: 2, bonds:["c1"] },
+                { "name": "H", "id": "h4", x: 2, y: 0, bonds:["c2"] }, 
+                { "name": "H", "id": "h5", x: 2, y: 2, bonds:["c2"] },
+                { "name": "H", "id": "h6", x: 3, y: 1, bonds:["c2"] },
+                { "name": "C", "id": "c1", x: 1, y: 1, bonds:["h1","h2","h3"] },
+                { "name": "C", "id": "c2", x: 2, y: 1, bonds:["h4","h5","h6"] }],
+            "bonds": [{ "count": 1, "left": "h1", "right": "c1" }, 
+            { "count": 1, "left": "h2", "right": "c1" }, 
+            { "count": 1, "left": "h3", "right": "c1" },
+            { "count": 1, "left": "h4", "right": "c2" }, 
+            { "count": 1, "left": "h5", "right": "c2" }, 
+            { "count": 1, "left": "h6", "right": "c2" },
+            { "count": 1, "left": "c1", "right": "c2" }],
+            x: 24, y: 18, w: 2, h: 3
+        }],
+		"production": true
+    },
+    {
         "name": "Alkonost: An Introduction to Sensing",
+        "section": "Alkonost",
         "alpha": {
             "in": [{
                 "probability": 50,
@@ -390,6 +520,7 @@ window.configs = [
     },
     {
         "name": "Alkonost: Prelude to a Migrane",
+        "section": "Alkonost",
         "alpha": {
             "in": [{
                 "probability": 50,
@@ -420,6 +551,7 @@ window.configs = [
     },
     {
         "name": "Alkonost: Random Oxides",
+        "section": "Alkonost",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -458,6 +590,7 @@ window.configs = [
     },
     {
         "name": "Sikutar: Ice to Meet You",
+        "section": "Sikutar",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -492,6 +625,7 @@ window.configs = [
     },
     {
         "name": "Sikutar: Under the Ice",
+        "section": "Sikutar",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -528,6 +662,7 @@ window.configs = [
     },
     {
         "name": "Sikutar: Unknown Sender",
+        "section": "Sikutar",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -553,6 +688,7 @@ window.configs = [
     },
     {
         "name": "Hephaestus IV: Like a Boss",
+        "section": "Hephaestus IV",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -594,6 +730,7 @@ window.configs = [
     },
     {
         "name": "Hephaestus IV: Sacre bleu",
+        "section": "Hephaestus IV",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -661,6 +798,7 @@ window.configs = [
     },
     {
         "name": "Hephaestus IV: The Plot Thickens",
+        "section": "Hephaestus IV",
         "alpha": {
             "in": [{
                 "probability": 100,
@@ -730,6 +868,7 @@ window.configs = [
     },
     {
         "name": "Hephaestus IV: Danger Zone",
+        "section": "Hephaestus IV",
         "alpha": {
             "in": [{
                 "probability": 50,

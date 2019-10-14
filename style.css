@@ -1,4 +1,11 @@
-﻿.square {
+﻿.sectionHeader{
+    border-radius: 5px;
+    box-shadow: 2px 2px 8px 2px #333;
+    cursor: pointer;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.square {
 		border: 1px solid #ddd;
 		position: absolute;
 		width: 60px;

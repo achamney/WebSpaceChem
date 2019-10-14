@@ -1,9 +1,18 @@
 ﻿window.onload = function () {
     get("begin").onclick = beginButtonFn;
     var levels = get("levels");
+    var sections = {};
     for (var levelId in configs) {
         var level = configs[levelId];
-        var btn = makebtn("button", levels, level.name, 0, 0, setConfig(configs[levelId]));
+        if (!sections[level.section]) {
+            makeSection(level);
+        }
+        sections[level.section] = true;
+    }
+    for (var levelId in configs) {
+        var level = configs[levelId];
+        var section = $("div[data-id='levelSection" + level.section + "']")[0]
+        var btn = makebtn("button", section, level.name, 0, 0, setConfig(configs[levelId]));
         btn.style.width = "100%";
     }
     window.levelName = "Water";
@@ -13,7 +22,7 @@
     getLevelWebData(data => {
         window.levelWebData = data;
         if (!uniqueName) {
-            window.uniqueName = Math.floor(Math.random() * 1000000)+"";
+            window.uniqueName = Math.floor(Math.random() * 1000000) + "";
             localStorage.setItem("uniqueName", uniqueName);
             uniqueNameInput.value = uniqueName;
             makeNewSave(uniqueName);
@@ -33,21 +42,37 @@
                 levelWebData.uniqueNames.push({ name: uniqueName, id: uri[uri.length - 1] });
                 updateWebData();
             }
-        }); 
+        });
+    }
+    function makeSection(level) {
+        var levels = get("levels");
+        var sectionHeader = make("div", levels, "sectionHeader");
+        sectionHeader.innerHTML = level.section + " <span style='float:right'>&#9660;</span>";
+        sectionHeader.onclick = function () {
+            var sectionCont = $("div[data-id='levelSection" + level.section + "']")[0];
+            if(sectionCont.style.display == "none") {
+                sectionCont.style.display = "block";
+            } else {
+                sectionCont.style.display = "none";
+            }
+        };
+        var sectionCont = $(make("div", levels, "levelSection"));
+        sectionCont.attr("data-id", "levelSection" + level.section);
+        sectionCont.css("display", "none");
     }
 }
 window.changeUniqueName = function (un) {
     var newName = un.value;
-	var user = levelWebData.uniqueNames.filter(n=>n.name == uniqueName)[0];
-	var newUser = levelWebData.uniqueNames.filter(n=>n.name == newName)[0];
+    var user = levelWebData.uniqueNames.filter(n => n.name == uniqueName)[0];
+    var newUser = levelWebData.uniqueNames.filter(n => n.name == newName)[0];
     if (user && !newUser) {
-		user.name = newName;
+        user.name = newName;
         uniqueName = newName;
         updateWebData();
     } else if (newUser) {
-		localStorage.setItem("uniqueName", newName);
-		location.reload();
-	}
+        localStorage.setItem("uniqueName", newName);
+        location.reload();
+    }
 }
 function beginButtonFn() {
     var beginButton = get("begin");
@@ -57,7 +82,7 @@ function beginButtonFn() {
         beginButton.style.display = "none";
         config.style.display = "none";
         get("configContainer").style.display = "none";
-        loadGame(configJson, 'canvas', {id:""});
+        loadGame(configJson, 'canvas', { id: "" });
         if (!configJson.production) {
             load();
         }
@@ -79,8 +104,8 @@ function loadGame(config, container, reactor) {
     window.elementRadius = 20;
     window.curSymbol = 'Start';
     cycles = 0;
-	if (config.production){
-		return loadProduction(config);
+    if (config.production) {
+        return loadProduction(config);
     }
     if (!reactor.alpha) {
         reactor.alpha = {
@@ -232,7 +257,7 @@ function makeInBox(container, inProbs, greekMode, offsetx) {
             var percent = make("div", container, "");
             percent.innerHTML = prob.probability + "%";
             percent.style.position = "absolute";
-            percent.style.left = (offsetx+extra - 20) + "px";
+            percent.style.left = (offsetx + extra - 20) + "px";
         }
         makeInOutBox(container, prob.elements, prob.bonds, greekMode, offsetx + extra);
         extra += 100;
@@ -343,7 +368,7 @@ function toggleGreekVisibility(input, greek) {
     $(".line." + greek.mode).css("display", newVisible);
 }
 function makeBonder(sq) {
-    var bonder = makesq('div', sq, 'bonder', 0, 0, (mapsizex / 10)-13, (mapsizey / 8)-12);
+    var bonder = makesq('div', sq, 'bonder', 0, 0, (mapsizex / 10) - 13, (mapsizey / 8) - 12);
     bonder.gridx = sq.gridx;
     bonder.gridy = sq.gridy;
     bonder.type = "bonder";
@@ -355,7 +380,7 @@ function makeBonder(sq) {
     bonder.ondragover = null;
     bonder.ondrop = null;
     curReactor.reactorFeatures.bonders.push(bonder);
-    bonder.innerHTML = "+ - <sup>" + curReactor.reactorFeatures.bonders.length+"</sup>";
+    bonder.innerHTML = "+ - <sup>" + curReactor.reactorFeatures.bonders.length + "</sup>";
 }
 function makeSensor(sq) {
     var sensor = makesq('div', sq, 'sensor', 0, 0, (mapsizex / 10) - 13, (mapsizey / 8) - 12);
@@ -451,7 +476,7 @@ function setSqListeners(sq) {
     }
 }
 
-window.save = function() {
+window.save = function () {
     var saveState = {
         alpha: saveGreek(curReactor.alpha),
         beta: saveGreek(curReactor.beta),
@@ -474,7 +499,7 @@ window.save = function() {
     updatePersonalData();
 }
 function saveReactorFeatures(reactor) {
-    var saveFeatures = { bonders: []};
+    var saveFeatures = { bonders: [] };
     if (reactor.reactorFeatures.bonders) {
         for (var bonder of reactor.reactorFeatures.bonders) {
             saveFeatures.bonders.push({ gridx: bonder.gridx, gridy: bonder.gridy });
@@ -503,7 +528,7 @@ function deleteAll(greek) {
     deletePath(greek);
     greek.startSymbol = null;
 }
-window.load = function() {
+window.load = function () {
     var lastSave = localStorage.getItem(window.levelName + "last");
     window.saveNumber = parseInt(lastSave);
     var saveStateJSON = localStorage.getItem(window.levelName + lastSave);
@@ -520,7 +545,7 @@ window.load = function() {
         loadReactor(saveState, curReactor);
     }
 }
-window.loadReactor = function(saveState, reactor) {
+window.loadReactor = function (saveState, reactor) {
     reactor.alpha.symbols = loadGreek(reactor.alpha, saveState.alpha);
     reactor.beta.symbols = loadGreek(reactor.beta, saveState.beta);
     reactor.alpha.startSymbol && makePath(reactor.alpha.startSymbol.parentSquare, reactor.alpha);
@@ -581,7 +606,7 @@ window.setGrid = function (sym, sq, parent) {
     sym.gridy = sq.gridy;
 }
 
-window.symAtCoords = function(symbols, location, arrow) {
+window.symAtCoords = function (symbols, location, arrow) {
     for (var i = 0; i < symbols.length; i++) {
         var curSym = symbols[i];
         if (curSym.gridx == location.x && curSym.gridy == location.y) {
@@ -595,7 +620,7 @@ window.symAtCoords = function(symbols, location, arrow) {
     }
     return null;
 }
-window.greek = function(name) {
+window.greek = function (name) {
     if (name == "Beta")
         return curReactor.beta;
     if (name == "Alpha" || curReactor.mode == curReactor.alpha)
@@ -605,7 +630,7 @@ window.greek = function(name) {
 window.greekOpposite = function (name) {
     if (name == "Beta")
         return curReactor.alpha;
-    if (name == "Alpha" )
+    if (name == "Alpha")
         return curReactor.beta;
 }
 function makeBuildButtons(canvas) {
@@ -679,7 +704,7 @@ function makeRunButtons(canvas) {
         buttonContainer.classList.add("buttonContainer");
     }
     clear(buttonContainer);
-    
+
     makebtn('button', buttonContainer, 'Stop', mapsizex + 10, buttonpos += 50, function () {
         stopGame(canvas);
     });
@@ -775,7 +800,7 @@ function showSymSpecificButtons(buttons, element) {
 
 function updatePersonalData() {
     var user = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
-    var url = "https://api.myjson.com/bins/"+user.id;
+    var url = "https://api.myjson.com/bins/" + user.id;
     $.ajax({
         url: url,
         type: "PUT",
@@ -784,7 +809,7 @@ function updatePersonalData() {
         dataType: "json",
         success: function (data, textStatus, jqXHR) {
         }
-    }); 
+    });
 }
 function updateWebData() {
     var url = localStorage.getItem("devStats");
@@ -798,10 +823,10 @@ function updateWebData() {
         success: function (data, textStatus, jqXHR) {
             window.levelWebData = data;
         }
-    }); 
+    });
 }
 
-window.traverseBonds = function(el, visit) {
+window.traverseBonds = function (el, visit) {
     traverseBondsIter(el, visit, []);
 }
 function traverseBondsIter(el, visit, visited) {
@@ -822,7 +847,7 @@ window.getLevelWebData = function (callback) {
 }
 window.getPersonalData = function () {
     var me = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
-    var url = "https://api.myjson.com/bins/"+me.id;
+    var url = "https://api.myjson.com/bins/" + me.id;
     $.get(url, function (data, textStatus, jqXHR) {
         window.personalData = data;
     });
@@ -854,6 +879,6 @@ window.fixStats = function () {
                 levelWebData.uniqueNames.push({ name: person.name, id: uri[uri.length - 1] });
                 //updateWebData();
             }
-        }); 
+        });
     }
 }

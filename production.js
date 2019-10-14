@@ -223,10 +223,24 @@ function makeProdBottomButtons() {
         loadProdSave();
     }).style.width = "50px";
     makebtn('button', buttonContainer, 'Clear All', -50 + (buttonpos += 55), mapsizey + 60, function () {
-        //deleteAll(alpha);
-        //deleteAll(beta);
-        //save();
+        clearAll();
+        save();
     });
+}
+function clearAll() {
+    for (var i = reactors.length - 1; i >= 0; i--) {
+        var reactor = reactors[i];
+        deleteReactor(reactor);
+    }
+    for (var i = pipes.length-1;i>=0;i--) {
+        var pipe = pipes[i];
+        if(!pipe.upstream.inData) {
+            delElement(pipe);
+            pipes.splice(i, 1);
+        } else {
+            pipe.canMakeMore = true;
+        }
+    }
 }
 function saveProd() {
     window.saveNumber = window.saveNumber || 0;
@@ -594,7 +608,8 @@ function makeProdElement(parentSquare, inData) {
 window.prodDeposit = function (elContainer) {
     // meets requirements recursively parses the nodes, only need to grab the first element
     var el1 = elContainer.childNodes[0];
-    var meetsReqs = meetsRequirements(el1, { outReqs: outs[0].outData });
+    var pipe = prodCollide({gridx:elContainer.prodx, gridy:elContainer.prody},null,{x:1,y:1});
+    var meetsReqs = meetsRequirements(el1, { outReqs: pipe.downstream.outData });
     if (meetsReqs) {
         var pipe = symAtCoords(pipes, { x: elContainer.prodx, y: elContainer.prody });
         pipe.curElement = null;
@@ -645,10 +660,7 @@ function loadProdSave() {
         }
     }
     if (saveState) {
-        for (var i = reactors.length - 1; i >= 0; i--) {
-            var reactor = reactors[i];
-            deleteReactor(reactor);
-        }
+        clearAll()
         for (var reactor of saveState.reactors) {
             var sq = symAtCoords(productionSquares, { x: reactor.x, y: reactor.y });
             curReactorType = reactor.type;

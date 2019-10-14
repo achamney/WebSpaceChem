@@ -199,8 +199,7 @@ window.prodOutFn = function (sym, greek) {
                     }
                 }
                 else if (sym.greek == "Beta") {
-                    if (checkAllInBounds(element, (x, y) => x > 5 && y >= 4)
-                        && meetsRequirements(element, beta)) {
+                    if (checkAllInBounds(element, (x, y) => x > 5 && y >= 4)) {
                         performProdOut(curReactor.beta, greek, element, outed);
                         outed = true;
                     }
