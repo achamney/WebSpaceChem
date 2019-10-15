@@ -408,7 +408,7 @@ button {
 .centered {
     text-align:center;
 }
-.requirements {
+.reqs {
     position: absolute;
     top: -85px;
     background-color: white;
@@ -444,6 +444,7 @@ button {
     font-size: 20px;
     font-weight: 700;
     text-align: center;
+    position: absolute;
 }
 .pipe.link{
     color: #D0D;
@@ -474,5 +475,5 @@ button {
 }
 .req {
     position: absolute;
-    top: -80px;
+    top: -85px;
 }

@@ -61,6 +61,7 @@
     window.stopReactor = stopGame;
     window.stopGame = stopProdGame;
     window.load = loadProdSave;
+    delElement(get('reqs'));
     loadProdSave();
     saveProd();
 }
@@ -181,10 +182,12 @@ function setProdSqListeners(sq) {
                 x: -currentDragPipe.gridx + sq.gridx,
                 y: -currentDragPipe.gridy + sq.gridy
             };
-            var collided = prodCollide(sq, null, { x: 1, y: 1 });
-            if (!pipeOnSq && !collided) {
-                currentDragPipe = makePipe(sq, dir, currentDragPipe);
-                saveProd();
+            if ((!pipeOnSq || (pipeOnSq && diffPipeDir(pipeOnSq.direction, dir))) && pipeOnSq != currentDragPipe) {
+                var collided = prodCollide(sq, pipeOnSq, { x: 1, y: 1 });
+                if (!collided) {
+                    currentDragPipe = makePipe(sq, dir, currentDragPipe);
+                    saveProd();
+                }
             } else if (pipeOnSq != currentDragPipe && pipeOnSq != currentDragPipe.upstream) {
                 currentDragPipe = null;
                 saveProd();
@@ -197,6 +200,9 @@ function setProdSqListeners(sq) {
             }
         }
     }
+}
+function diffPipeDir(dir1, dir2) {
+    return (dir1.x == 0 && dir2.x != 0) || (dir1.x != 0 && dir2.x == 0);
 }
 function makeProdBottomButtons() {
     var buttonContainer = get("canvas"),
@@ -608,14 +614,15 @@ function makeProdElement(parentSquare, inData) {
 window.prodDeposit = function (elContainer) {
     // meets requirements recursively parses the nodes, only need to grab the first element
     var el1 = elContainer.childNodes[0];
-    var pipe = prodCollide({gridx:elContainer.prodx, gridy:elContainer.prody},null,{x:1,y:1});
-    var meetsReqs = meetsRequirements(el1, { outReqs: pipe.downstream.outData });
+    var pipe = prodCollide({ gridx: elContainer.prodx, gridy: elContainer.prody }, null, { x: 1, y: 1 });
+    var outReqs = pipe.downstream.outData;
+    var meetsReqs = meetsRequirements(el1, { outReqs: outReqs });
     if (meetsReqs) {
         var pipe = symAtCoords(pipes, { x: elContainer.prodx, y: elContainer.prody });
         pipe.curElement = null;
         delElement(elContainer);
-        config.outReqs[0].count--;
-        if (config.outReqs[0].count == 0) {
+        outReqs.count--;
+        if (outReqs.count == 0) {
             var symbols = 0;
             for (var reactor of reactors) {
                 symbols += reactor.alpha.symbols.length + reactor.beta.symbols.length;
