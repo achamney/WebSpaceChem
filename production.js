@@ -182,13 +182,14 @@ function setProdSqListeners(sq) {
                 x: -currentDragPipe.gridx + sq.gridx,
                 y: -currentDragPipe.gridy + sq.gridy
             };
-            if ((!pipeOnSq || (pipeOnSq && diffPipeDir(pipeOnSq.direction, dir))) && pipeOnSq != currentDragPipe) {
+            if ((!pipeOnSq || (pipeOnSq && !pipeOnSq.length && diffPipeDir(pipeOnSq.direction, dir)))
+                && pipeOnSq != currentDragPipe) {
                 var collided = prodCollide(sq, pipeOnSq, { x: 1, y: 1 });
                 if (!collided) {
                     currentDragPipe = makePipe(sq, dir, currentDragPipe);
                     saveProd();
                 }
-            } else if (pipeOnSq != currentDragPipe && pipeOnSq != currentDragPipe.upstream) {
+            } else if (pipeOnSq != currentDragPipe && pipeOnSq != currentDragPipe.upstream && pipeOnSq.length != 2) {
                 currentDragPipe = null;
                 saveProd();
             } else if (pipeOnSq == currentDragPipe.upstream) {
@@ -425,6 +426,9 @@ function stopProdGame(canvas) {
         curReactor = reactor;
         stopReactor(getReactorCanvas(reactor));
     }
+    for (var source of sources) {
+        source.counter = 9;
+    }
     for (var pipe of pipes) {
         pipe.curElement = null;
     }
@@ -440,9 +444,6 @@ window.runProd = function (canvas, moveTime, symbolTime) {
     var timeInterval = symbolTime / moveTime;
 
     clearIntervals();
-    for (var source of sources) {
-        source.counter = 9;
-    }
     for (var reactor of reactors) {
         if (reactor.alpha.startSymbol)
             runSetup(getReactorCanvas(reactor), reactor.alpha, "Alpha");
@@ -470,7 +471,10 @@ window.runProd = function (canvas, moveTime, symbolTime) {
                         x: element.prodx + element.direction.x,
                         y: element.prody + element.direction.y
                     });
-                    if (!nextPipe.curElement) {
+                    if (nextPipe && nextPipe.length == 2) {
+                        nextPipe = nextPipe.filter(p => p.direction.x == element.direction.x)[0];
+                    }
+                    if (nextPipe && !nextPipe.curElement) {
                         incLeft(element, element.direction.x * xDistTick);
                         incTop(element, element.direction.y * yDistTick);
                     }
@@ -483,10 +487,13 @@ window.runProd = function (canvas, moveTime, symbolTime) {
     window.activateInterval = window.setInterval(function () {    
         for (var el of elements.childNodes) {
             if (el.state == "move") {
-                var lastPipe = symAtCoords(pipes, {x: el.prodx, y: el.prody});
+                var lastPipe = symAtCoords(pipes, { x: el.prodx, y: el.prody });
+                if (lastPipe.length == 2) {
+                    lastPipe = lastPipe.filter(p => p.direction.x == el.direction.x)[0];
+                }
                 el.prodx += el.direction.x;
                 el.prody += el.direction.y;
-                var curPipe = symAtCoords(pipes, {x: el.prodx, y: el.prody});
+                var curPipe = lastPipe.downstream;
                 if (curPipe && curPipe.curElement) {
                     el.prodx -= el.direction.x;
                     el.prody -= el.direction.y;
@@ -681,13 +688,22 @@ function loadProdSave() {
         for (var pipe of saveState.pipes) {
             var sq = symAtCoords(productionSquares, { x: pipe.x, y: pipe.y });
             var otherPipe = prodCollide(sq, null, { x: 1, y: 1 });
-            if (otherPipe || !pipe.upstream) {
-                continue;
+            var crossPipe = false;
+            if (otherPipe && otherPipe.direction.x != pipe.direction.x)
+                crossPipe = true;
+            if (!crossPipe || !pipe.upstream) {
+                if (otherPipe || !pipe.upstream) {
+                    continue;
+                }
             }
             var parent = prodCollide({
                 gridx: pipe.upstream.x,
                 gridy: pipe.upstream.y
             }, null, { x: 1, y: 1 });
+            var checkPipeParent = symAtCoords(pipes, { x: pipe.upstream.x, y: pipe.upstream.y });
+            if (checkPipeParent.length == 2) {
+                parent = checkPipeParent.filter(p => p.direction.x == pipe.direction.x)[0];
+            }
             makePipe(sq, pipe.direction, parent);
         }
         resetEntrancePipes();

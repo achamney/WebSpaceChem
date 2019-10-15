@@ -242,7 +242,7 @@ button {
 #reqs {
     position: relative;
     top: -85px;
-    left: 250px;
+    left: 0px;
 }
 #reqs .bondbar {
     z-index: 1;

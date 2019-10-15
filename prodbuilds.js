@@ -5,6 +5,7 @@ window.makeSource = function (sq, inData) {
     source.inData = inData;
     source.w = inData.w;
     source.h = inData.h;
+    source.counter = 9;
     source.innerHTML = "<div class='buildingtext'>&#9654;&#9654;</div>"
     source.produceElement = function () {
         var parentSquare = source.downstream.parentSquare;

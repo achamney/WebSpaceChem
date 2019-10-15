@@ -607,6 +607,7 @@ window.setGrid = function (sym, sq, parent) {
 }
 
 window.symAtCoords = function (symbols, location, arrow) {
+    var retArray = [];
     for (var i = 0; i < symbols.length; i++) {
         var curSym = symbols[i];
         if (curSym.gridx == location.x && curSym.gridy == location.y) {
@@ -615,10 +616,14 @@ window.symAtCoords = function (symbols, location, arrow) {
             } else if (!arrow && curSym.arrow) {
                 continue;
             }
-            return curSym;
+            retArray.push(curSym);
         }
     }
-    return null;
+    if (retArray.length == 1)
+        return retArray[0];
+    if (retArray.length == 0)
+        return null;
+    return retArray;
 }
 window.greek = function (name) {
     if (name == "Beta")
