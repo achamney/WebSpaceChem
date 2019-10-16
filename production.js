@@ -47,7 +47,7 @@
         outDisplays.push(make("h2", canvas, 'req', true));
         outDisplays[outDisplays.length - 1].innerHTML = makeProdHeader(depo);
     }
-    window.curReactorType = "standard";
+    window.curReactorType = config.reactors[0];
     window.currentDragPipe = null;
     makeProdBottomButtons();
     makeProdBuildButtons(canvas);
@@ -182,7 +182,16 @@ function setProdSqListeners(sq) {
                 x: -currentDragPipe.gridx + sq.gridx,
                 y: -currentDragPipe.gridy + sq.gridy
             };
-            if ((!pipeOnSq || (pipeOnSq && !pipeOnSq.length && diffPipeDir(pipeOnSq.direction, dir)))
+            if (pipeOnSq == currentDragPipe.upstream || (pipeOnSq && pipeOnSq.length == 2 && ~pipeOnSq.indexOf(currentDragPipe.upstream))) {
+                delElement(currentDragPipe);
+                pipes.splice(pipes.indexOf(currentDragPipe), 1);
+                currentDragPipe = pipeOnSq.length == 2 ?
+                    pipeOnSq.filter(p => p.direction.x == currentDragPipe.direction.x)[0] :
+                    pipeOnSq;
+                currentDragPipe.canMakeMore = true;
+                saveProd();
+            }
+            else if ((!pipeOnSq || (pipeOnSq && !pipeOnSq.length && diffPipeDir(pipeOnSq.direction, dir)))
                 && pipeOnSq != currentDragPipe) {
                 var collided = prodCollide(sq, pipeOnSq, { x: 1, y: 1 });
                 if (!collided) {
@@ -192,13 +201,7 @@ function setProdSqListeners(sq) {
             } else if (pipeOnSq != currentDragPipe && pipeOnSq != currentDragPipe.upstream && pipeOnSq.length != 2) {
                 currentDragPipe = null;
                 saveProd();
-            } else if (pipeOnSq == currentDragPipe.upstream) {
-                delElement(currentDragPipe);
-                pipes.splice(pipes.indexOf(currentDragPipe), 1);
-                currentDragPipe = pipeOnSq;
-                currentDragPipe.canMakeMore = true;
-                saveProd();
-            }
+            } 
         }
     }
 }
@@ -357,9 +360,21 @@ function makeProdBuildButtons(canvas) {
         buttonContainer.id = "buttonContainer";
     }
     clear(buttonContainer);
-    makeProdbtns('button', buttonContainer, 'Standard Reactor', "standard", mapsizex + 10, buttonpos += 60, function () {
-        curReactorType = "standard";
-    });
+    if (~config.reactors.indexOf("standard")) {
+        makeProdbtns('button', buttonContainer, 'Standard Reactor', "standard", mapsizex + 10, buttonpos += 60, function () {
+            curReactorType = "standard";
+        });
+    }
+    if (~config.reactors.indexOf("assembly")) {
+        makeProdbtns('button', buttonContainer, 'Assembly Reactor', "assembly", mapsizex + 10, buttonpos += 60, function () {
+            curReactorType = "assembly";
+        });
+    }
+    if (~config.reactors.indexOf("disassembly")) {
+        makeProdbtns('button', buttonContainer, 'Disassembly Reactor', "disassembly", mapsizex + 10, buttonpos += 60, function () {
+            curReactorType = "disassembly";
+        });
+    }
     makebtn('button', buttonContainer, 'Run', mapsizex + 10, buttonpos += 60, function () {
         makeProdRunButtons(canvas);
         runProd(canvas);
@@ -565,6 +580,7 @@ function getSourceFromPipe(pipe) {
 }
 window.makeInDataFromElements = function (elContainer, xmod) {
     xmod = xmod || 0;
+    var ymod = 0;
     var inData = [{
         probability: 100,
         elements: [],
@@ -573,9 +589,12 @@ window.makeInDataFromElements = function (elContainer, xmod) {
     for (var el of elContainer.childNodes) {
         var data = inData[0];
         var bondData = el.bonds.map(b => b.id);
+        if (el.gridy >= 4) {
+            ymod = 4;
+        }
         //remove dupes
         bondData = bondData.filter((item, pos) => bondData.indexOf(item) == pos);
-        data.elements.push({ name: el.symbol, x: el.gridx - xmod, y: el.gridy, id: el.id, bonds: bondData });
+        data.elements.push({ name: el.symbol, x: el.gridx - xmod, y: el.gridy - ymod, id: el.id, bonds: bondData });
         for (var bond of el.bonds) {
             var otherBond = data.bonds.filter(b =>
                 (b.left == el.id && b.right == bond.id) ||
@@ -684,27 +703,31 @@ function loadProdSave() {
             }
             loadReactor(reactor, reactors[reactors.length - 1]);
         }
-        
-        for (var pipe of saveState.pipes) {
-            var sq = symAtCoords(productionSquares, { x: pipe.x, y: pipe.y });
-            var otherPipe = prodCollide(sq, null, { x: 1, y: 1 });
-            var crossPipe = false;
-            if (otherPipe && otherPipe.direction.x != pipe.direction.x)
-                crossPipe = true;
-            if (!crossPipe || !pipe.upstream) {
-                if (otherPipe || !pipe.upstream) {
-                    continue;
+        try {
+            for (var pipe of saveState.pipes) {
+                var sq = symAtCoords(productionSquares, { x: pipe.x, y: pipe.y });
+                var otherPipe = prodCollide(sq, null, { x: 1, y: 1 });
+                var crossPipe = false;
+                if (otherPipe && otherPipe.direction.x != pipe.direction.x)
+                    crossPipe = true;
+                if (!crossPipe || !pipe.upstream) {
+                    if (otherPipe || !pipe.upstream) {
+                        continue;
+                    }
                 }
+                var parent = prodCollide({
+                    gridx: pipe.upstream.x,
+                    gridy: pipe.upstream.y
+                }, null, { x: 1, y: 1 });
+                var checkPipeParent = symAtCoords(pipes, { x: pipe.upstream.x, y: pipe.upstream.y });
+                if (checkPipeParent && checkPipeParent.length == 2) {
+                    parent = checkPipeParent.filter(p => p.direction.x == pipe.direction.x)[0];
+                }
+                makePipe(sq, pipe.direction, parent);
             }
-            var parent = prodCollide({
-                gridx: pipe.upstream.x,
-                gridy: pipe.upstream.y
-            }, null, { x: 1, y: 1 });
-            var checkPipeParent = symAtCoords(pipes, { x: pipe.upstream.x, y: pipe.upstream.y });
-            if (checkPipeParent.length == 2) {
-                parent = checkPipeParent.filter(p => p.direction.x == pipe.direction.x)[0];
-            }
-            makePipe(sq, pipe.direction, parent);
+        } catch (e) {
+            pipes.splice(pipes.length - 1, 1);
+            console.log(e);
         }
         resetEntrancePipes();
     }

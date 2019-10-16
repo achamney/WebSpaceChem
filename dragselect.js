@@ -21,6 +21,10 @@ window.primeDragSelect = function (e, canvas) {
 window.moveDragSelect = function (e,canvas) {
     if (dragId) {
         var selectBox = get(dragId);
+        if (!selectBox) {
+            dragId = null;
+            return;
+        }
         var newX = e.x, newY = e.y - 100;
         if (newX < selectBox.x) {
             selectBox.style.left = newX + "px";

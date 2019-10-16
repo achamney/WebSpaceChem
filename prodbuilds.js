@@ -47,8 +47,6 @@ window.reactorstandard = {
         if (prodCollide(sq, null, { x: 4, y: 4 })) return;
         var sym = makereactor(sq, 'building reactor standard', makeProdDelButton());
         setGrid(sym, sq, sq);
-        sym.w = 4;
-        sym.h = 4;
         sym.innerHTML = "<div class='buildingtext'>&#9654; &#8478; &#9654;</div>";
         sym.bonders = [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }];
         sym.outPipes = [];
@@ -81,12 +79,84 @@ window.reactorstandard = {
         return sym;
     }
 };
+window.reactorassembly = {
+    place: function (sq) {
+        if (prodCollide(sq, null, { x: 4, y: 4 })) return;
+        var sym = makereactor(sq, 'building reactor assembly', makeProdDelButton());
+        setGrid(sym, sq, sq);
+        sym.innerHTML = "<div class='buildingtext'>&#10010; &#8478; &#9654;</div>";
+        sym.bonders = [{ x: 4, y: 3, type: "a" }, { x: 4, y: 4, type: "a" }, { x: 5, y: 3, type: "a" }, { x: 5, y: 4, type: "a" }];
+        sym.outPipes = [];
+        var pipe1Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 1 });
+        sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
+        reactorCommon(sym, "assembly");
+        sym.getEntrance = function (x, y) {
+            var diffy = y - sym.gridy;
+            if (diffy == 1) {
+                return sym.alpha.entrance;
+            }
+            else if (diffy == 2) {
+                return sym.beta.entrance;
+            }
+            return null;
+        }
+        sym.link = function (pipe, entrance) {
+            var greekLoc = pipe.gridy - sym.gridy;
+            var source = getSourceFromPipe(pipe);
+            var greek = greekLoc == 1 ? sym.alpha : sym.beta;
+            if (source.inData) {
+                greek.in = source.inData.inProb;
+            } else {
+                greek.in = [];
+            }
+            makeRequirements(getReactorCanvas(sym), sym);
+        }
+        return sym;
+    }
+};
+window.reactordisassembly = {
+    place: function (sq) {
+        if (prodCollide(sq, null, { x: 4, y: 4 })) return;
+        var sym = makereactor(sq, 'building reactor disassembly', makeProdDelButton());
+        setGrid(sym, sq, sq);
+        sym.innerHTML = "<div class='buildingtext'>&#10006; &#8478; &#9654;</div>";
+        sym.bonders = [{ x: 4, y: 3, type: "d" }, { x: 4, y: 4, type: "d" }, { x: 5, y: 3, type: "d" }, { x: 5, y: 4, type: "d" }];
+        sym.outPipes = [];
+        var pipe1Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 1 });
+        var pipe2Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 2 });
+        sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
+        reactorCommon(sym, "disassembly");
+        sym.getEntrance = function (x, y) {
+            var diffy = y - sym.gridy;
+            if (diffy == 1) {
+                return sym.alpha.entrance;
+            }
+            return null;
+        }
+        sym.link = function (pipe, entrance) {
+            var greekLoc = pipe.gridy - sym.gridy;
+            var source = getSourceFromPipe(pipe);
+            var greek = greekLoc == 1 ? sym.alpha : null;
+            if (!greek) return;
+            if (source.inData) {
+                greek.in = source.inData.inProb;
+            } else {
+                greek.in = [];
+            }
+            makeRequirements(getReactorCanvas(sym), sym);
+        }
+        return sym;
+    }
+};
 function reactorCommon(sym, name) {
     var contentContainer = getReactorCanvas(sym);
     make("div", contentContainer, "reqs");
     var els = make("div", contentContainer, "elementsProd");
     els.id = `elements${sym.id}`;
     sym.type = name;
+    sym.w = 4;
+    sym.h = 4;
     sym.hasEntrance = true;
     var config = {
         alpha: {
