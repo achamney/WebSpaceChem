@@ -5,8 +5,8 @@
         sym.greek = greek.mode;
         sym.performAction = function (greekName, g) {
             var elements = get('elements');
-            if (reactorFeatures.sensor) {
-                var element = getElOnSensor(elements, reactorFeatures.sensor);
+            if (curReactor.reactorFeatures.sensor) {
+                var element = getElOnSensor(elements, curReactor.reactorFeatures.sensor);
                 if (element && element.symbol == sym.input.value) {
                     greek.waldo.direction = sym.direction;
                 }

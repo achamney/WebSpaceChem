@@ -168,7 +168,8 @@ button {
 }
 #elements{
     z-index:4;
-    position: relative;
+    position: absolute;
+    top: 0;
 }
 .elementsProd {
     z-index: 1000;

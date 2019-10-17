@@ -5,9 +5,9 @@
         sym.greek = greek.mode;
         sym.performAction = function (greekName, g) {
             var elements = get('elements');
-            if (reactorFeatures.fuser) {
-                var lelement = getElOnFuser(elements, reactorFeatures.fuser);
-                var relement = getElOnFuser(elements, reactorFeatures.fuser,1);
+            if (curReactor.reactorFeatures.fuser) {
+                var lelement = getElOnFuser(elements, curReactor.reactorFeatures.fuser);
+                var relement = getElOnFuser(elements, curReactor.reactorFeatures.fuser,1);
                 if (lelement && relement) {
                     delElement(lelement);
                     var pElr = periodicTable.filter(el => el[0] == relement.symbol)[0];

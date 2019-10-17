@@ -403,7 +403,7 @@ function makeSensor(sq) {
     sensor.ondragover = null;
     sensor.ondrop = null;
     sensor.innerHTML = "<div class='innersensor'>O</div>";
-    reactorFeatures.sensor = sensor;
+    curReactor.reactorFeatures.sensor = sensor;
 }
 function makeFuser(sq) {
     var fuser = makesq('div', sq, 'sensor', 0, 0, (mapsizex / 5) - 13, (mapsizey / 8) - 12);
@@ -417,7 +417,7 @@ function makeFuser(sq) {
     fuser.ondragover = null;
     fuser.ondrop = null;
     fuser.innerHTML = "<div class='innerfuser'>&#9654;</div><div class='innerfuser'>O</div>";
-    reactorFeatures.fuser = fuser;
+    curReactor.reactorFeatures.fuser = fuser;
 }
 function dropSymSq(sq) {
     return function (ev) {

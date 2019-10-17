@@ -436,8 +436,6 @@ function makeProdbtns(tagname, parent, text, name, left, top, funct, width, heig
 function stopProdGame(canvas) {
     clearIntervals();
     clear(get('elements'));
-    curReactor = saveCurReactor;
-    saveCurReactor = null;
     makeProdBuildButtons(get("canvas"));
     for (var outReq of config.outReqs) {
         outReq.count = outReq.maxCount;
@@ -452,6 +450,8 @@ function stopProdGame(canvas) {
     for (var pipe of pipes) {
         pipe.curElement = null;
     }
+    curReactor = saveCurReactor;
+    saveCurReactor = null;
     cycles = 0;
 }
 function getReactorCanvas(reactor) {
