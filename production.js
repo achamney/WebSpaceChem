@@ -1,4 +1,7 @@
-﻿window.loadProduction = function (config) {
+﻿
+window.curReactor = null;
+window.saveCurReactor = null;
+window.loadProduction = function (config) {
     var canvas = get("canvas");
     window.config = config;
 	window.gridNumX = config.gridNumX || 32;
@@ -177,7 +180,7 @@ function setProdSqListeners(sq) {
     }
     sq.onmousemove = function () {
         if (currentDragPipe) {
-            var pipeOnSq = symAtCoords(pipes, { x: sq.gridx, y: sq.gridy });
+            var pipeOnSq = symsAtCoords(pipes, { x: sq.gridx, y: sq.gridy });
             var dir = {
                 x: -currentDragPipe.gridx + sq.gridx,
                 y: -currentDragPipe.gridy + sq.gridy
@@ -433,6 +436,8 @@ function makeProdbtns(tagname, parent, text, name, left, top, funct, width, heig
 function stopProdGame(canvas) {
     clearIntervals();
     clear(get('elements'));
+    curReactor = saveCurReactor;
+    saveCurReactor = null;
     makeProdBuildButtons(get("canvas"));
     for (var outReq of config.outReqs) {
         outReq.count = outReq.maxCount;
@@ -453,7 +458,8 @@ function getReactorCanvas(reactor) {
     return get(`modaltext${reactor.id}`);
 }
 window.runProd = function (canvas, moveTime, symbolTime) {
-
+    if (!saveCurReactor)
+        saveCurReactor = curReactor;
     moveTime = moveTime || 30;
     symbolTime = symbolTime || 1000;
     var timeInterval = symbolTime / moveTime;
@@ -482,7 +488,7 @@ window.runProd = function (canvas, moveTime, symbolTime) {
             }
             for (var element of elements.childNodes) {
                 if (element.state == "move") {
-                    var nextPipe = symAtCoords(pipes, {
+                    var nextPipe = symsAtCoords(pipes, {
                         x: element.prodx + element.direction.x,
                         y: element.prody + element.direction.y
                     });
@@ -502,7 +508,7 @@ window.runProd = function (canvas, moveTime, symbolTime) {
     window.activateInterval = window.setInterval(function () {    
         for (var el of elements.childNodes) {
             if (el.state == "move") {
-                var lastPipe = symAtCoords(pipes, { x: el.prodx, y: el.prody });
+                var lastPipe = symsAtCoords(pipes, { x: el.prodx, y: el.prody });
                 if (lastPipe.length == 2) {
                     lastPipe = lastPipe.filter(p => p.direction.x == el.direction.x)[0];
                 }
@@ -615,7 +621,7 @@ window.makeInDataFromElements = function (elContainer, xmod) {
 function makeProdElement(parentSquare, inData) {
     var elements = get('elements');
     var elContainer = make("div", elements, "prodElContainer");
-    var pipe = symAtCoords(pipes, {
+    var pipe = symsAtCoords(pipes, {
         x: parentSquare.gridx,
         y: parentSquare.gridy
     });
@@ -648,36 +654,45 @@ window.prodDeposit = function (elContainer) {
         pipe.curElement = null;
         delElement(elContainer);
         outReqs.count--;
-        if (outReqs.count == 0) {
-            var symbols = 0;
-            for (var reactor of reactors) {
-                symbols += reactor.alpha.symbols.length + reactor.beta.symbols.length;
-            }
-            clearIntervals();
-            var level = personalData.levels.filter(l => l.name == levelName)[0];
-            if (!level) {
-                level = { name: levelName };
-                personalData.levels.push(level);
-            }
-            if (!level.symbols) {
-                level.cycles = cycles;
-                level.symbols = symbols;
-            }
-            openHighScores(symbols);
-            if (level.symbols) {
-
-                if (symbols < level.symbols) {
-                    level.symbols = symbols;
-                }
-                if (cycles < level.cycles) {
-                    level.cycles = cycles;
-                }
-            }
-            updatePersonalData();
-            stopProdGame(get('canvas'));
-        }
+        checkProdWin();
     } else {
         alert("Error: Wrong molecule in out depot!");
+        stopProdGame(get('canvas'));
+    }
+}
+function checkProdWin() {
+    var win = true;
+    for (var out of outs) {
+        if (out.outData.count > 0) {
+            win = false;
+        }
+    }
+    if (win) {
+        var symbols = 0;
+        for (var reactor of reactors) {
+            symbols += reactor.alpha.symbols.length + reactor.beta.symbols.length;
+        }
+        clearIntervals();
+        var level = personalData.levels.filter(l => l.name == levelName)[0];
+        if (!level) {
+            level = { name: levelName };
+            personalData.levels.push(level);
+        }
+        if (!level.symbols) {
+            level.cycles = cycles;
+            level.symbols = symbols;
+        }
+        openHighScores(symbols);
+        if (level.symbols) {
+
+            if (symbols < level.symbols) {
+                level.symbols = symbols;
+            }
+            if (cycles < level.cycles) {
+                level.cycles = cycles;
+            }
+        }
+        updatePersonalData();
         stopProdGame(get('canvas'));
     }
 }
@@ -693,6 +708,9 @@ function loadProdSave() {
         }
     }
     if (saveState) {
+        var saveReactorIndex = -1;
+        if (saveCurReactor)
+            saveReactorIndex = reactors.indexOf(saveCurReactor);
         clearAll()
         for (var reactor of saveState.reactors) {
             var sq = symAtCoords(productionSquares, { x: reactor.x, y: reactor.y });
@@ -702,6 +720,11 @@ function loadProdSave() {
                 reactors.push(sym);
             }
             loadReactor(reactor, reactors[reactors.length - 1]);
+        }
+        if (saveCurReactor) {
+            $(reactors[saveReactorIndex]).click();
+            $(reactors[saveReactorIndex]).click();
+            saveCurReactor = null;
         }
         try {
             for (var pipe of saveState.pipes) {
@@ -719,7 +742,7 @@ function loadProdSave() {
                     gridx: pipe.upstream.x,
                     gridy: pipe.upstream.y
                 }, null, { x: 1, y: 1 });
-                var checkPipeParent = symAtCoords(pipes, { x: pipe.upstream.x, y: pipe.upstream.y });
+                var checkPipeParent = symsAtCoords(pipes, { x: pipe.upstream.x, y: pipe.upstream.y });
                 if (checkPipeParent && checkPipeParent.length == 2) {
                     parent = checkPipeParent.filter(p => p.direction.x == pipe.direction.x)[0];
                 }

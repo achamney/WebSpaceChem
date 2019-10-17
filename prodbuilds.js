@@ -175,6 +175,7 @@ function makereactor(parent, classes, selectFunction) {
     var ret = makesq("div", parent, classes, 0, 0, 4 * mapsizex / gridNumX, 4 * mapsizey / gridNumY);
     ret.onclick = function (event) {
         var currentTime = (new Date()).getTime();
+        console.log(currentTime - doubleClick);
         if (currentTime - doubleClick < 500) {
             openReactor(ret);
         }

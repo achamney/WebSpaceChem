@@ -16,7 +16,7 @@
                         var b1e = getElOnSquare(elements, b1);
                         var b2e = getElOnSquare(elements, b2);
                         if (b1e && b2e) {
-                            if (sym.bond == "bond" && !maxBonds(b1e) && !maxBonds(b2e)) {
+                            if (sym.bond == "bond" && !maxBonds(b1e) && !maxBonds(b2e) && b1.capability != "d") {
                                 b1e.bonds.push(b2e);
                                 b2e.bonds.push(b1e);
                                 for (var i = 0; i < 10; i++) {
@@ -27,7 +27,7 @@
                                         b.grabbed = true;
                                     });
                                 }
-                            } else if (sym.bond == "debond") {
+                            } else if (sym.bond == "debond" && b1.capability != "a") {
                                 removeBonds(b1e, b2e);
                                 removeBonds(b2e, b1e);
                                 for (var i = 0; i < 10; i++) {

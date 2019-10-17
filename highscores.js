@@ -5,11 +5,13 @@ window.setupModal = function (id) {
     // When the user clicks on <span> (x), close the modal
     span.onclick = function () {
         modal.style.display = "none";
+        window.curReactor = null;
     }
     // When the user clicks anywhere outside of the modal, close it
     document.addEventListener("click", function (event) {
         if (event.target == modal) {
             modal.style.display = "none";
+            window.curReactor = null;
         }
     });
 }

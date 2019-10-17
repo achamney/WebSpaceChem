@@ -169,7 +169,7 @@ function makeUI(reactor, canvas) {
             sq.gridy = j;
             for (var bonder of reactor.reactorFeatures.bonderData) {
                 if (bonder.x == i && bonder.y == j) {
-                    makeBonder(sq);
+                    makeBonder(sq, bonder);
                 }
             }
             if (reactor.reactorFeatures.sensor && reactor.reactorFeatures.sensor.x == i && reactor.reactorFeatures.sensor.y == j) {
@@ -312,9 +312,9 @@ function makeBottomButtons(parentContainer) {
         save();
     });
     makebtn('button', buttonContainer, 'Swap Waldo Colors', -50 + (buttonpos += 155), mapsizey + 60, function () {
-        var symswap = alpha.symbols;
-        alpha.symbols = beta.symbols;
-        beta.symbols = symswap;
+        var symswap = curReactor.alpha.symbols;
+        curReactor.alpha.symbols = curReactor.beta.symbols;
+        curReactor.beta.symbols = symswap;
         save();
         load();
     });
@@ -325,6 +325,7 @@ function makeBottomButtons(parentContainer) {
             lastSave = 19;
         }
         localStorage.setItem(window.levelName + "last", lastSave);
+        saveCurReactor = curReactor;
         load();
     }).style.width = "50px";
     makebtn('button', buttonContainer, 'Redo', -50 + (buttonpos += 55), mapsizey + 60, function () {
@@ -334,17 +335,18 @@ function makeBottomButtons(parentContainer) {
             lastSave = 1;
         }
         localStorage.setItem(window.levelName + "last", lastSave);
+        saveCurReactor = curReactor;
         load();
     }).style.width = "50px";
     var checkA = makecheck(buttonContainer, "visibleSymbols alpha",
         -50 + (buttonpos += 55), mapsizey + 60, "Alpha Visible");
     checkA.onclick = function () {
-        toggleGreekVisibility(this, alpha);
+        toggleGreekVisibility(this, curReactor.alpha);
     }
     var checkB = makecheck(buttonContainer, "visibleSymbols beta",
         -50 + (buttonpos), mapsizey + 85, "Beta Visible");
     checkB.onclick = function () {
-        toggleGreekVisibility(this, beta);
+        toggleGreekVisibility(this, curReactor.beta);
     }
 }
 function makecheck(container, classes, x, y, text) {
@@ -367,7 +369,7 @@ function toggleGreekVisibility(input, greek) {
     }
     $(".line." + greek.mode).css("display", newVisible);
 }
-function makeBonder(sq) {
+function makeBonder(sq, data) {
     var bonder = makesq('div', sq, 'bonder', 0, 0, (mapsizex / 10) - 13, (mapsizey / 8) - 12);
     bonder.gridx = sq.gridx;
     bonder.gridy = sq.gridy;
@@ -379,8 +381,15 @@ function makeBonder(sq) {
     }
     bonder.ondragover = null;
     bonder.ondrop = null;
+    bonder.capability = data.type ? data.type : "full";
     curReactor.reactorFeatures.bonders.push(bonder);
-    bonder.innerHTML = "+ - <sup>" + curReactor.reactorFeatures.bonders.length + "</sup>";
+    var bondText = "+ -";
+    if (data.type == "a") {
+        bondText = "+";
+    } else if (data.type == "d") {
+        bondText = "-";
+    }
+    bonder.innerHTML = bondText + " <sup>" + curReactor.reactorFeatures.bonders.length + "</sup>";
 }
 function makeSensor(sq) {
     var sensor = makesq('div', sq, 'sensor', 0, 0, (mapsizex / 10) - 13, (mapsizey / 8) - 12);
@@ -607,6 +616,20 @@ window.setGrid = function (sym, sq, parent) {
 }
 
 window.symAtCoords = function (symbols, location, arrow) {
+    for (var i = 0; i < symbols.length; i++) {
+        var curSym = symbols[i];
+        if (curSym.gridx == location.x && curSym.gridy == location.y) {
+            if (arrow && !curSym.arrow) {
+                continue;
+            } else if (!arrow && curSym.arrow) {
+                continue;
+            }
+            return curSym;
+        }
+    }
+    return null;
+}
+window.symsAtCoords = function (symbols, location, arrow) {
     var retArray = [];
     for (var i = 0; i < symbols.length; i++) {
         var curSym = symbols[i];
