@@ -545,6 +545,70 @@ window.configs = [
         "production": true
     },
     {
+        "name": "Danopth: In Place Swap",
+        "section": "Danopth",
+        "in": [{
+            "inProb": [{
+                "probability": 100,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 0, "y": 1, "bonds": ["c1"]
+                }, {
+                    "name": "H", "id": "h2", "x": 2, "y": 1, "bonds": ["c1"]
+                }, {
+                    "name": "H", "id": "h3", "x": 1, "y": 0, "bonds": ["c1"]
+                }, {
+                    "name": "H", "id": "h4", "x": 1, "y": 2, "bonds": ["c1"]
+                }, {
+                    "name": "C", "id": "c1", "x": 1, "y": 1, "bonds": ["h1", "h2", "h3", "h4"]
+                }],
+                "bonds": [{ count: 1, left: "h1", right: "c1" },
+                { count: 1, left: "h2", right: "c1" },
+                { count: 1, left: "h3", right: "c1" },
+                { count: 1, left: "h4", right: "c1" }]
+            }],
+            x: 4, y: 15, w: 2, h: 5
+        }, {
+            "inProb": [{
+                "probability": 100,
+                "elements": [{
+                    "name": "N", "id": "n1", "x": 1, "y": 1, "bonds": ["n2"]
+                }, {
+                    "name": "N", "id": "n2", "x": 2, "y": 1, "bonds": ["n1"]
+                }],
+                "bonds": [{ count: 3, left: "n1", right: "n2" }]
+            }],
+            x: 5, y: 3, w: 2, h: 3
+        }],
+        "outReqs": [{
+            "count": 40,
+            "elements": [{
+                "name": "H", "id": "h1", "x": 0, "y": 1, "bonds": ["n1"]
+            }, {
+                "name": "H", "id": "h2", "x": 2, "y": 1, "bonds": ["n1"]
+            }, {
+                "name": "H", "id": "h3", "x": 1, "y": 0, "bonds": ["n1"]
+            }, {
+                "name": "N", "id": "n1", "x": 1, "y": 1, "bonds": ["h1", "h2", "h3"]
+            }],
+            "bonds": [{ count: 1, left: "h1", right: "n1" },
+            { count: 1, left: "h2", right: "n1" },
+            { count: 1, left: "h3", right: "n1" }],
+            x: 24, y: 12, w: 2, h: 3
+        },
+        {
+            "count": 40,
+            "elements": [{ "name": "H", "id": "h1", x: 0, y: 1, bonds: ["c1"] },
+                { "name": "C", "id": "c1", x: 1, y: 1, bonds: ["h1", "n1"] },
+                { "name": "N", "id": "n1", x: 2, y: 1, bonds: ["c1"] }
+            ],
+            "bonds": [{ "count": 1, "left": "h1", "right": "c1" },
+                { "count": 3, "left": "c1", "right": "n1" }],
+            x: 24, y: 18, w: 2, h: 3
+        }],
+        "reactors": ["assembly", "disassembly"],
+        "production": true
+    },
+    {
         "name": "Alkonost: An Introduction to Sensing",
         "section": "Alkonost",
         "alpha": {
