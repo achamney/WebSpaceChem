@@ -4,7 +4,7 @@
         var sym = makesym('div', sq, 'symbol sensorSym ' + greek.mode, 0, 0, 50, 50, makeSensorButtons(greek));
         sym.greek = greek.mode;
         sym.performAction = function (greekName, g) {
-            var elements = get('elements');
+            var elements = get("elements" + curReactor.id);
             if (curReactor.reactorFeatures.sensor) {
                 var element = getElOnSensor(elements, curReactor.reactorFeatures.sensor);
                 if (element && element.symbol == sym.input.value) {

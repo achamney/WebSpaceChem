@@ -79,7 +79,7 @@ function meetsRequirements(el, greek) {
         var outReq1El = greek.outReqs.elements.filter(e => e.id == bond.left)[0];
         var outReq2El = greek.outReqs.elements.filter(e => e.id == bond.right)[0];
         traverseBonds(el, b => {
-            for (var elBond of el.bonds) {
+            for (var elBond of b.bonds) {
                 if ((b.symbol == outReq1El.name && elBond.symbol == outReq2El.name) ||
                     (b.symbol == outReq2El.name && elBond.symbol == outReq1El.name)) {
                     var count = b.bonds.filter(b => b.symbol == outReq2El.name || b.symbol == outReq1El.name);

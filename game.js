@@ -186,8 +186,8 @@ function makeUI(reactor, canvas) {
 window.makeRequirements = function (canvas, reactor) {
     var reqDiv = $(canvas).find('.reqs')[0];
     clear(reqDiv);
-    var extra = makeInBox(reqDiv, reactor.alpha.in, reactor.alpha.mode, 0);
-    makeInBox(reqDiv, reactor.beta.in, reactor.beta.mode, 100 + extra);
+    var extra = makeInBox(reqDiv, reactor.alpha.in, reactor.alpha.mode, 20);
+    makeInBox(reqDiv, reactor.beta.in, reactor.beta.mode, 120 + extra);
     makeInOutBox(reqDiv, reactor.alpha.outReqs.elements, reactor.alpha.outReqs.bonds, reactor.alpha.mode, 300, reactor.alpha.outReqs.size);
     if (!reactor.alpha.outReqs.size) {
         makeInOutBox(reqDiv, reactor.beta.outReqs.elements, reactor.beta.outReqs.bonds, reactor.beta.mode, 400);
@@ -307,8 +307,8 @@ function makeBottomButtons(parentContainer) {
         location.reload();
     }).style.width = "50px";
     makebtn('button', buttonContainer, 'Clear All', -50 + (buttonpos += 55), mapsizey + 60, function () {
-        deleteAll(alpha);
-        deleteAll(beta);
+        deleteAll(curReactor.alpha);
+        deleteAll(curReactor.beta);
         save();
     });
     makebtn('button', buttonContainer, 'Swap Waldo Colors', -50 + (buttonpos += 155), mapsizey + 60, function () {

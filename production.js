@@ -378,6 +378,11 @@ function makeProdBuildButtons(canvas) {
             curReactorType = "disassembly";
         });
     }
+    if (~config.reactors.indexOf("sensor")) {
+        makeProdbtns('button', buttonContainer, 'Sensor Reactor', "sensor", mapsizex + 10, buttonpos += 60, function () {
+            curReactorType = "sensor";
+        });
+    }
     makebtn('button', buttonContainer, 'Run', mapsizex + 10, buttonpos += 60, function () {
         makeProdRunButtons(canvas);
         runProd(canvas);
@@ -565,10 +570,13 @@ window.runProd = function (canvas, moveTime, symbolTime) {
             }
         }
 
+        var ymod = -100;
         for (var i = 0; i < outs.length; i++) {
             var depo = outs[i],
                 disp = outDisplays[i];
             disp.innerHTML = makeProdHeader(depo);
+            disp.style.top = ymod + "px";
+            ymod += 30;
         }
         cycles++;
     }, symbolTime);

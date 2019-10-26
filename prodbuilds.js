@@ -11,11 +11,12 @@ window.makeSource = function (sq, inData) {
         var parentSquare = source.downstream.parentSquare;
         makeProdElement(parentSquare, inData.inProb);
     }
-    var xmod = 0;
+    var xmod = -82;
     for (var prob of inData.inProb) {
         var inDetailBox = make("div", source, "inDetailBox");
-        makeInOutBox(inDetailBox, prob.elements, prob.bonds, "", xmod);
-        xmod -= 80;
+        inDetailBox.style.left = xmod + "px";
+        makeInOutBox(inDetailBox, prob.elements, prob.bonds, "", 0);
+        xmod -= 82;
     }
     sources.push(source);
 }
@@ -25,21 +26,39 @@ window.makeDeposit = function (sq, outData) {
     outEl.outData = outData;
     outEl.w = outData.w;
     outEl.h = outData.h;
-    outEl.innerHTML = "<div class='buildingtext'>" + outData.elements[0].name + "&#9654;</div>";
-    outEl.entrance = {
-        push: prodDeposit
-    };
     outEl.hasEntrance = true;
-    outEl.getEntrance = function (x, y) {
-        var diff = y - outEl.gridy;
-        if (diff == 1) {
-            return outEl.entrance;
-        }
-        return null;
-    };
+    if (outData.count > 0) {
+        outEl.innerHTML = "<div class='buildingtext'>" + outData.elements[0].name + "&#9654;</div>";
+        outEl.entrance = {
+            push: prodDeposit
+        };
+        outEl.getEntrance = function (x, y) {
+            var diff = y - outEl.gridy;
+            if (diff == 1) {
+                return outEl.entrance;
+            }
+            return null;
+        };
+        var outReqBox = make("div", outEl, "outReqBox");
+        makeInOutBox(outReqBox, outData.elements, outData.bonds, "", 0);
+    } else {
+        outEl.innerHTML = "<div class='buildingtext'>&#10006;</div>";
+        outEl.entrance = {
+            push: function (elContainer) {
+                var pipe = symAtCoords(pipes, { x: elContainer.prodx, y: elContainer.prody });
+                pipe.curElement = null;
+                delElement(elContainer);
+            }
+        };
+        outEl.getEntrance = function (x, y) {
+            var diff = y - outEl.gridy;
+            if (diff >= 2 && diff <= 4) {
+                return outEl.entrance;
+            }
+            return null;
+        };
+    }
     outEl.link = function () { };
-    var outReqBox = make("div", outEl, "outReqBox");
-    makeInOutBox(outReqBox, outData.elements, outData.bonds, "", 0);
     outs.push(outEl);
 }
 window.reactorstandard = {
@@ -149,6 +168,44 @@ window.reactordisassembly = {
         return sym;
     }
 };
+window.reactorsensor = {
+    place: function (sq) {
+        if (prodCollide(sq, null, { x: 4, y: 4 })) return;
+        var sym = makereactor(sq, 'building reactor buildsensor', makeProdDelButton());
+        setGrid(sym, sq, sq);
+        sym.innerHTML = "<div class='buildingtext'>&#927; &#8478; &#9654;</div>";
+        sym.bonders = [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }];
+        sym.sensor = { x: 4, y: 1 };
+        sym.outPipes = [];
+        var pipe1Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 1 });
+        var pipe2Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 2 });
+        sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
+        reactorCommon(sym, "sensor");
+        sym.getEntrance = function (x, y) {
+            var diffy = y - sym.gridy;
+            if (diffy == 1) {
+                return sym.alpha.entrance;
+            }
+            else if (diffy == 2) {
+                return sym.beta.entrance;
+            }
+            return null;
+        }
+        sym.link = function (pipe, entrance) {
+            var greekLoc = pipe.gridy - sym.gridy;
+            var source = getSourceFromPipe(pipe);
+            var greek = greekLoc == 1 ? sym.alpha : sym.beta;
+            if (source.inData) {
+                greek.in = source.inData.inProb;
+            } else {
+                greek.in = [];
+            }
+            makeRequirements(getReactorCanvas(sym), sym);
+        }
+        return sym;
+    }
+};
 function reactorCommon(sym, name) {
     var contentContainer = getReactorCanvas(sym);
     make("div", contentContainer, "reqs");
@@ -165,7 +222,9 @@ function reactorCommon(sym, name) {
         beta: {
             in: [], outReqs: {}
         },
-        bonders: sym.bonders
+        bonders: sym.bonders,
+        sensor: sym.sensor,
+        fuser: sym.fuser
     };
     loadGame(config, contentContainer.id, sym);
     sym.alpha.entrance = sym.alpha.entrance || [];
