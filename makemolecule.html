@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <script>
+            var output = { elements: [], bonds:[]};
+            window.onload = function () {
+                let b = document.getElementById("cont");
+                let ins = document.querySelectorAll('input');
+                for (var inel of ins) {
+                    listenEl(inel);
+                }
+            }
+            function listenEl (el) {
+                var x = parseInt(el.getAttribute("x")),
+                    y = parseInt(el.getAttribute("y"));
+                el.onchange = function() {
+                    var newId = el.value+"0",
+                        newIdCounter = 0,
+                        dupCount = 2;
+                    var exist = output.elements.filter(e=>e.x==x && e.y==y)[0];
+                    if (!exist) {
+                        exists = {
+                            x: x,
+                            y: y,
+                            name: el.value,
+                            id: newId
+                        };
+                        output.elements.push(exists);
+                    }
+                    while(dupCount > 1) {
+                        newId = el.value+(++newIdCounter);
+                        dupCount = output.elements.filter(e=>e.id == newId).length;
+                    }
+                    exists.id = newId;
+                    exists.name = el.value;
+                    document.getElementById("outEl").value = JSON.stringify(output);
+                }
+            }
+        </script>
+        <style>
+            input {
+                width:66px;
+            }
+        </style>
+    </head>
+<body>
+    <div style="border: 1px solid black;margin:10px; width:300px; height:300px" id="cont">
+        <div><input type=text x=0 y=0><input type=text x=1 y=0><input type=text x=2 y=0><input type=text x=3 y=0></div>
+        <div><input type=text x=0 y=1><input type=text x=1 y=1><input type=text x=2 y=1><input type=text x=3 y=1></div>
+        <div><input type=text x=0 y=2><input type=text x=1 y=2><input type=text x=2 y=2><input type=text x=3 y=2></div>
+        <div><input type=text x=0 y=3><input type=text x=1 y=3><input type=text x=2 y=3><input type=text x=3 y=3></div>
+    </div>
+    <textarea id="outEl" rows=10 cols=20></textarea>
+</body>
+</html>

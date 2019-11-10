@@ -845,6 +845,75 @@ window.configs = [
         "production": true
     },
     {
+        "name": "Alkonost: Going Green",
+        "section": "Alkonost",
+        "in": [{
+            "inProb": [{
+                "probability": 67,
+                "elements": [{
+                    "name": "O", "id": "o1", "x": 1, "y": 1, "bonds": ["c1"]
+                }, {
+                    "name": "C", "id": "c1", "x": 2, "y": 1, "bonds": ["o1","o2"]
+                }, {
+                    "name": "O", "id": "o2", "x": 3, "y": 1, "bonds": ["c1"]
+                }],
+                "bonds": [{ count: 2, left: "o1", right: "c1" }, { count: 2, left: "o2", right: "c1" }]
+            }, {
+                "probability": 33,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": ["s1"]
+                }, {
+                    "name": "S", "id": "s1", "x": 1, "y": 2, "bonds": ["h1", "h2"]
+                }, {
+                    "name": "H", "id": "h2", "x": 2, "y": 2, "bonds": ["s1"]
+                }],
+                "bonds": [{ count: 1, left: "h1", right: "s1" }, { count: 1, left: "h2", right: "s1" }]
+            }],
+            x: 0, y: 4, w: 5, h: 15
+        }],
+        "outReqs": [
+            {
+                "count": 40,
+                "elements": [{
+                        "name": "H", "id": "h1", "x": 0, "y": 2, "bonds": ["o1"]
+                    }, {
+                        "name": "O", "id": "o1", "x": 0, "y": 1, "bonds": ["h1","n1"]
+                    }, {
+                        "name": "O", "id": "o2", "x": 1, "y": 0, "bonds": ["n1"]
+                    }, {
+                        "name": "O", "id": "o3", "x": 2, "y": 1, "bonds": ["n1"]
+                    }, {
+                        "name": "N", "id": "n1", "x": 1, "y": 1, "bonds": ["o1", "o2", "o3"]
+                }],
+                "bonds": [{ count: 1, left: "h1", right: "o1" },
+                    { count: 1, left: "o1", right: "n1" },
+                    { count: 2, left: "o2", right: "n1" },
+                    { count: 1, left: "o3", right: "n1" }],
+                x: 23, y: 7, w: 2, h: 3
+            }, {
+                "count": 40,
+                "elements": [{
+                    "name": "Na", "id": "na1", "x": 0, "y": 2, "bonds": ["o1"]
+                }, {
+                    "name": "O", "id": "o1", "x": 0, "y": 1, "bonds": ["na1", "n1"]
+                }, {
+                    "name": "O", "id": "o2", "x": 1, "y": 0, "bonds": ["n1"]
+                }, {
+                    "name": "O", "id": "o3", "x": 2, "y": 1, "bonds": ["n1"]
+                }, {
+                    "name": "N", "id": "n1", "x": 1, "y": 1, "bonds": ["o1", "o2", "o3"]
+                }],
+                "bonds": [{ count: 1, left: "na1", right: "o1" },
+                { count: 1, left: "o1", right: "n1" },
+                { count: 2, left: "o2", right: "n1" },
+                { count: 1, left: "o3", right: "n1" }],
+                x: 21, y: 17, w: 2, h: 3
+            }
+        ],
+        "reactors": ["sensor"],
+        "production": true
+    },
+    {
         "name": "Sikutar: Ice to Meet You",
         "section": "Sikutar",
         "alpha": {
