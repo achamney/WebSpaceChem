@@ -1,4 +1,6 @@
-﻿window.onload = function () {
+﻿window.MASTERURL="https://jsonbox.io/box_42bb8d0f3b1497aab3f3/";
+window.MAINJSONBOX="5f24468ff6082900171da77d";
+window.onload = function () {
     get("begin").onclick = beginButtonFn;
     var levels = get("levels");
     var sections = {};
@@ -32,14 +34,14 @@
     function makeNewSave(uniqueName) {
         window.personalData = { levels: [] };
         $.ajax({
-            url: "https://api.myjson.com/bins",
+            url: MASTERURL,
             type: "POST",
             data: JSON.stringify(personalData),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function (data, textStatus, jqXHR) {
-                var uri = data.uri.split("/");
-                levelWebData.uniqueNames.push({ name: uniqueName, id: uri[uri.length - 1] });
+                var uri = data["_id"];
+                levelWebData.uniqueNames.push({ name: uniqueName, id: uri });
                 updateWebData();
             }
         });
@@ -828,7 +830,7 @@ function showSymSpecificButtons(buttons, element) {
 
 function updatePersonalData() {
     var user = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
-    var url = "https://api.myjson.com/bins/" + user.id;
+    var url = MASTERURL + user.id;
     $.ajax({
         url: url,
         type: "PUT",
@@ -841,7 +843,7 @@ function updatePersonalData() {
 }
 function updateWebData() {
     var url = localStorage.getItem("devStats");
-    url = url || "https://api.myjson.com/bins/olxbt";
+    url = url || MASTERURL+MAINJSONBOX;
     $.ajax({
         url: url,
         type: "PUT",
@@ -868,14 +870,14 @@ function traverseBondsIter(el, visit, visited) {
 }
 window.getLevelWebData = function (callback) {
     var url = localStorage.getItem("devStats");
-    url = url || "https://api.myjson.com/bins/olxbt";
+    url = url || MASTERURL+MAINJSONBOX;
     $.get(url, function (data, textStatus, jqXHR) {
         callback(data);
     });
 }
 window.getPersonalData = function () {
     var me = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
-    var url = "https://api.myjson.com/bins/" + me.id;
+    var url = MASTERURL + me.id;
     $.get(url, function (data, textStatus, jqXHR) {
         window.personalData = data;
     });
@@ -896,15 +898,15 @@ window.fixStats = function () {
             }
         }
         $.ajax({
-            url: "https://api.myjson.com/bins",
+            url: MASTERURL,
             type: "POST",
             data: JSON.stringify(myUserData),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function (data, textStatus, jqXHR) {
-                var uri = data.uri.split("/");
+                var uri = data["_id"];
                 console.log(data);
-                levelWebData.uniqueNames.push({ name: person.name, id: uri[uri.length - 1] });
+                levelWebData.uniqueNames.push({ name: person.name, id: uri });
                 //updateWebData();
             }
         });
