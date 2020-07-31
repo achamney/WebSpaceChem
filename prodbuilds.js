@@ -12,13 +12,24 @@ window.makeSource = function (sq, inData) {
         makeProdElement(parentSquare, inData.inProb);
     }
     var xmod = -82;
+    var ymod = 0;
+    fixXmod();
     for (var prob of inData.inProb) {
         var inDetailBox = make("div", source, "inDetailBox");
         inDetailBox.style.left = xmod + "px";
+        inDetailBox.style.top = ymod + "px";
         makeInOutBox(inDetailBox, prob.elements, prob.bonds, "", 0);
         xmod -= 82;
+        fixXmod();
     }
     sources.push(source);
+    function fixXmod(){
+        var totalX = parseInt(sq.style.left) + xmod;
+        if (totalX < -20) {
+            xmod += 82;
+            ymod += 82;
+        }
+    }
 }
 window.makeDeposit = function (sq, outData) {
     var outEl = makesq("div", sq, "building out", 0, 0, outData.w * mapsizex / gridNumX, outData.h * mapsizey / gridNumY);
@@ -182,6 +193,44 @@ window.reactorsensor = {
         sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
         sym.outPipes.push(makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
         reactorCommon(sym, "sensor");
+        sym.getEntrance = function (x, y) {
+            var diffy = y - sym.gridy;
+            if (diffy == 1) {
+                return sym.alpha.entrance;
+            }
+            else if (diffy == 2) {
+                return sym.beta.entrance;
+            }
+            return null;
+        }
+        sym.link = function (pipe, entrance) {
+            var greekLoc = pipe.gridy - sym.gridy;
+            var source = getSourceFromPipe(pipe);
+            var greek = greekLoc == 1 ? sym.alpha : sym.beta;
+            if (source.inData) {
+                greek.in = source.inData.inProb;
+            } else {
+                greek.in = [];
+            }
+            makeRequirements(getReactorCanvas(sym), sym);
+        }
+        return sym;
+    }
+};
+window.reactorfuser = {
+    place: function (sq) {
+        if (prodCollide(sq, null, { x: 4, y: 4 })) return;
+        var sym = makereactor(sq, 'building reactor buildfuser', makeProdDelButton());
+        setGrid(sym, sq, sq);
+        sym.innerHTML = "<div class='buildingtext'>&#9901; &#8478; &#9654;</div>";
+        sym.bonders = [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }];
+        sym.fuser = { x: 4, y: 1 };
+        sym.outPipes = [];
+        var pipe1Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 1 });
+        var pipe2Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 2 });
+        sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
+        reactorCommon(sym, "fuser");
         sym.getEntrance = function (x, y) {
             var diffy = y - sym.gridy;
             if (diffy == 1) {

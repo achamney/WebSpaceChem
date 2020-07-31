@@ -1,0 +1,81 @@
+<html>
+    <head>
+        <script>
+            var output = { elements: [], bonds:[]};
+            window.onload = function () {
+                let b = document.getElementById("cont");
+                let ins = document.querySelectorAll('input');
+                for (var inel of ins) {
+                    listenEl(inel);
+                }
+            }
+            function listenEl (el) {
+                var x = parseInt(el.getAttribute("x")),
+                    y = parseInt(el.getAttribute("y"));
+                el.onchange = function() {
+                    var newId = el.value+"1",
+                        newIdCounter = 0,
+                        dupCount = 0,
+                        newEl;
+                    var exist = output.elements.filter(e=>e.x==x && e.y==y)[0];
+                    if (!exist) {
+                        newEl = {
+                            x: x,
+                            y: y,
+                            name: el.value,
+                            id: newId,
+                            bonds: []
+                        };
+                        output.elements.push(newEl);
+                    } else {
+                        newEl = exist;
+                    }
+                    dupCount = output.elements.filter(e=>e.id == newId).length;
+                    while(dupCount > 1) {
+                        newId = el.value+(++newIdCounter);
+                        newEl.id = newId;
+                        dupCount = output.elements.filter(e=>e.id == newId).length;
+                    }
+                    newEl.id = newId;
+                    newEl.name = el.value;
+                    if (!exist) {
+                        findBonds(newEl);
+                    }
+                    document.getElementById("outEl").value = JSON.stringify(output, null, 2);
+                }
+            }
+            function findBonds(el) {
+                findBond(el, el.x-1,el.y);
+                findBond(el, el.x+1,el.y);
+                findBond(el, el.x,el.y-1);
+                findBond(el, el.x,el.y+1);
+            }
+            function findBond(el, x, y) {
+                var otherEl = output.elements.filter(o=>o.x==x && o.y==y)[0];
+                if (otherEl) {
+                    output.bonds.push({
+                        count: 1,
+                        left: otherEl.id,
+                        right: el.id
+                    });
+                    otherEl.bonds.push(el.id);
+                    el.bonds.push(otherEl.id);
+                }
+            }
+        </script>
+        <style>
+            input {
+                width:66px;
+            }
+        </style>
+    </head>
+<body>
+    <div style="border: 1px solid black;margin:10px; width:300px; height:300px" id="cont">
+        <div><input type=text x=0 y=0><input type=text x=1 y=0><input type=text x=2 y=0><input type=text x=3 y=0></div>
+        <div><input type=text x=0 y=1><input type=text x=1 y=1><input type=text x=2 y=1><input type=text x=3 y=1></div>
+        <div><input type=text x=0 y=2><input type=text x=1 y=2><input type=text x=2 y=2><input type=text x=3 y=2></div>
+        <div><input type=text x=0 y=3><input type=text x=1 y=3><input type=text x=2 y=3><input type=text x=3 y=3></div>
+    </div>
+    <textarea id="outEl" rows=10 cols=20></textarea>
+</body>
+</html>

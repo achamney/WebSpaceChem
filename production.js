@@ -383,6 +383,11 @@ function makeProdBuildButtons(canvas) {
             curReactorType = "sensor";
         });
     }
+    if (~config.reactors.indexOf("fuser")) {
+        makeProdbtns('button', buttonContainer, 'Fuse Reactor', "fuser", mapsizex + 10, buttonpos += 60, function () {
+            curReactorType = "fuser";
+        });
+    }
     makebtn('button', buttonContainer, 'Run', mapsizex + 10, buttonpos += 60, function () {
         makeProdRunButtons(canvas);
         runProd(canvas);

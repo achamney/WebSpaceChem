@@ -4,7 +4,7 @@
         var sym = makesym('div', sq, 'symbol fuseSym ' + greek.mode, 0, 0, 50, 50, makeFuseButtons(greek));
         sym.greek = greek.mode;
         sym.performAction = function (greekName, g) {
-            var elements = get('elements');
+            var elements = get("elements" + curReactor.id);
             if (curReactor.reactorFeatures.fuser) {
                 var lelement = getElOnFuser(elements, curReactor.reactorFeatures.fuser);
                 var relement = getElOnFuser(elements, curReactor.reactorFeatures.fuser,1);

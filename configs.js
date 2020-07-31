@@ -845,6 +845,132 @@ window.configs = [
         "production": true
     },
     {
+        "name": "Alkonost: Going Green",
+        "section": "Alkonost",
+        "in": [{
+            "inProb": [{
+                "probability": 67,
+                "elements": [{
+                    "name": "O", "id": "o1", "x": 1, "y": 1, "bonds": ["c1"]
+                }, {
+                    "name": "C", "id": "c1", "x": 2, "y": 1, "bonds": ["o1","o2"]
+                }, {
+                    "name": "O", "id": "o2", "x": 3, "y": 1, "bonds": ["c1"]
+                }],
+                "bonds": [{ count: 2, left: "o1", right: "c1" }, { count: 2, left: "o2", right: "c1" }]
+            }, {
+                "probability": 33,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": ["s1"]
+                }, {
+                    "name": "S", "id": "s1", "x": 1, "y": 2, "bonds": ["h1", "h2"]
+                }, {
+                    "name": "H", "id": "h2", "x": 2, "y": 2, "bonds": ["s1"]
+                }],
+                "bonds": [{ count: 1, left: "h1", right: "s1" }, { count: 1, left: "h2", right: "s1" }]
+            }],
+            x: 3, y: 4, w: 1, h: 15
+        }],
+        "outReqs": [
+            {
+                "count": 40,
+                "elements":[
+                    {
+                        "x":1,
+                        "y":0,
+                        "name":"O",
+                        "id":"O1",
+                        bonds:["S1"]
+                    },
+                    {
+                        "x":0,
+                        "y":1,
+                        "name":"O",
+                        "id":"O2",
+                        bonds:["S1"]
+                    },
+                    {
+                        "x":2,
+                        "y":1,
+                        "name":"O",
+                        "id":"O3",
+                        bonds:["S1"]
+                    },
+                    {
+                        "x":1,
+                        "y":2,
+                        "name":"O",
+                        "id":"O4",
+                        bonds:["S1"]
+                    },
+                    {
+                        "x":1,
+                        "y":1,
+                        "name":"S",
+                        "id":"S1",
+                        bonds:["O1","O2","O3","O4"]
+                    },
+                    {
+                        "x":0,
+                        "y":2,
+                        "name":"H",
+                        "id":"H1",
+                        bonds: ["O2"]
+                    },
+                    {
+                        "x":2,
+                        "y":0,
+                        "name":"H",
+                        "id":"H2",
+                        bonds: ["O3"]
+                    }
+                ],
+                "bonds":[
+                    {
+                        "count":1,
+                        "left":"O2",
+                        "right":"S1"
+                    },
+                    {
+                        "count":1,
+                        "left":"O3",
+                        "right":"S1"
+                    },
+                    {
+                        "count":2,
+                        "left":"O1",
+                        "right":"S1"
+                    },
+                    {
+                        "count":2,
+                        "left":"O4",
+                        "right":"S1"
+                    },
+                    {
+                        "count":1,
+                        "left":"O2",
+                        "right":"H1"
+                    },
+                    {
+                        "count":1,
+                        "left":"O3",
+                        "right":"H2"
+                    }
+                ],
+                x: 23, y: 7, w: 2, h: 3
+            }, {
+                "count": 40,
+                "elements": [{
+                    "name": "C", "id": "c1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": [],
+                x: 21, y: 17, w: 2, h: 3
+            }
+        ],
+        "reactors": ["sensor"],
+        "production": true
+    },
+    {
         "name": "Sikutar: Ice to Meet You",
         "section": "Sikutar",
         "alpha": {
@@ -941,6 +1067,97 @@ window.configs = [
         },
         fuser: { x: 4, y: 1 },
         bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }]
+    },
+    {
+        "name": "Sikutar: Falling",
+        "section": "Sikutar",
+        "in": [{
+            "inProb": [{
+                "probability": 100,
+                "elements": [
+                    {
+                      "x": 1,
+                      "y": 1,
+                      "name": "H",
+                      "id": "H1",
+                      "bonds": [
+                        "O1"
+                      ]
+                    },
+                    {
+                      "x": 1,
+                      "y": 2,
+                      "name": "O",
+                      "id": "O1",
+                      "bonds": [
+                        "H1",
+                        "H2"
+                      ]
+                    },
+                    {
+                      "x": 2,
+                      "y": 2,
+                      "name": "H",
+                      "id": "H2",
+                      "bonds": [
+                        "O1"
+                      ]
+                    }
+                  ],
+                  "bonds": [
+                    {
+                      "count": 1,
+                      "left": "H1",
+                      "right": "O1"
+                    },
+                    {
+                      "count": 1,
+                      "left": "O1",
+                      "right": "H2"
+                    }
+                  ]
+            }],
+            x: 4, y: 4, w: 2, h: 5
+        }, {
+            "inProb": [{
+                "probability": 100,
+                "elements": [{
+                    "x": 1,
+                    "y": 1,
+                    "name": "Kr",
+                    "id": "Kr1",
+                    "bonds": []
+                }],
+                bonds:[]
+            }],
+            x: 0, y: 14, w: 5, h: 6
+        }],
+        "outReqs": [
+            {
+                "count": 20,
+                "elements": [{
+                    "name": "Y", "id": "y1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": [],
+                x: 23, y: 7, w: 2, h: 3
+            }, {
+                "count": 20,
+                "elements": [{
+                    "name": "Zr", "id": "zr1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": [],
+                x: 23, y: 12, w: 2, h: 3
+            }, {
+                "count": 20,
+                "elements": [{
+                    "name": "Nb", "id": "nb1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": [],
+                x: 23, y: 17, w: 2, h: 3
+            }
+        ],
+        "reactors": ["sensor", "fuser"],
+        "production": true
     },
     {
         "name": "Hephaestus IV: Like a Boss",
