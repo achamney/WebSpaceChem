@@ -1,5 +1,6 @@
 ﻿window.MASTERURL="https://jsonbox.io/box_42bb8d0f3b1497aab3f3/";
-window.MAINJSONBOX="5f24468ff6082900171da77d";
+window.MAINJSONBOX="5f6899f9fe562d0017af573e";
+window.undoStackSize = 10;
 window.onload = function () {
     get("begin").onclick = beginButtonFn;
     var levels = get("levels");
@@ -324,7 +325,7 @@ function makeBottomButtons(parentContainer) {
         var lastSave = localStorage.getItem(window.levelName + "last");
         lastSave--;
         if (lastSave < 1) {
-            lastSave = 19;
+            lastSave = undoStackSize - 1;
         }
         localStorage.setItem(window.levelName + "last", lastSave);
         saveCurReactor = curReactor;
@@ -333,7 +334,7 @@ function makeBottomButtons(parentContainer) {
     makebtn('button', buttonContainer, 'Redo', -50 + (buttonpos += 55), mapsizey + 60, function () {
         var lastSave = localStorage.getItem(window.levelName + "last");
         lastSave++;
-        if (lastSave >= 20) {
+        if (lastSave >= undoStackSize) {
             lastSave = 1;
         }
         localStorage.setItem(window.levelName + "last", lastSave);

@@ -221,7 +221,7 @@ function makeProdBottomButtons() {
         var lastSave = localStorage.getItem(window.levelName + "last");
         lastSave--;
         if (lastSave < 1) {
-            lastSave = 19;
+            lastSave = undoStackSize - 1;
         }
         localStorage.setItem(window.levelName + "last", lastSave);
         loadProdSave();
@@ -229,7 +229,7 @@ function makeProdBottomButtons() {
     makebtn('button', buttonContainer, 'Redo', -50 + (buttonpos += 55), mapsizey + 60, function () {
         var lastSave = localStorage.getItem(window.levelName + "last");
         lastSave++;
-        if (lastSave >= 20) {
+        if (lastSave >= undoStackSize) {
             lastSave = 1;
         }
         localStorage.setItem(window.levelName + "last", lastSave);
