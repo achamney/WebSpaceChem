@@ -39,7 +39,9 @@ window.makeElement = function (inData, container, x, y, w, h, ymod) {
             element.elId = inEl.id;
             outElements.push(element);
         }
-        randomChoose = 1;
+        //randomChoose = 1; ?What was this for?
+        break; //Breaking instead
+
     }
     // Add bonds after adding all elements
     for (var inEl of chosenProb.elements) {

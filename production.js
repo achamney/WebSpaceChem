@@ -388,6 +388,11 @@ function makeProdBuildButtons(canvas) {
             curReactorType = "fuser";
         });
     }
+    if (~config.reactors.indexOf("flipflop")) {
+        makeProdbtns('button', buttonContainer, 'FlipFlop Reactor', "flipflop", mapsizex + 10, buttonpos += 60, function () {
+            curReactorType = "flipflop";
+        });
+    }
     makebtn('button', buttonContainer, 'Run', mapsizex + 10, buttonpos += 60, function () {
         makeProdRunButtons(canvas);
         runProd(canvas);

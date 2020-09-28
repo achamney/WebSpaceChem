@@ -152,7 +152,7 @@ function checkCollisions(reactor) {
             if (elLeft < el2Left + 42 && elLeft + 42 > el2Left &&
                 elTop < el2Top + 42 && elTop + 42 > el2Top) {
                 stopGame(get('canvas'));
-                alert("Collision between elements!");
+                alert("Collision between elements! "+reactor.id);
             }
         }
         if (elLeft < -10 || elLeft + 42 > mapsizex ||

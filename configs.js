@@ -1160,6 +1160,92 @@ window.configs = [
         "production": true
     },
     {
+        "name": "Sikutar: Applied Fusion",
+        "section": "Sikutar",
+        "in": [{
+            "inProb": [{
+                "probability": 100,
+                "elements": [
+                    {
+                      "x": 1,
+                      "y": 1,
+                      "name": "H",
+                      "id": "H1",
+                      "bonds": [
+                        "O1"
+                      ]
+                    },
+                    {
+                      "x": 1,
+                      "y": 2,
+                      "name": "O",
+                      "id": "O1",
+                      "bonds": [
+                        "H1",
+                        "H2"
+                      ]
+                    },
+                    {
+                      "x": 2,
+                      "y": 2,
+                      "name": "H",
+                      "id": "H2",
+                      "bonds": [
+                        "O1"
+                      ]
+                    }
+                  ],
+                  "bonds": [
+                    {
+                      "count": 1,
+                      "left": "H1",
+                      "right": "O1"
+                    },
+                    {
+                      "count": 1,
+                      "left": "O1",
+                      "right": "H2"
+                    }
+                  ]
+            }],
+            x: 4, y: 18, w: 2, h: 5
+        }],
+        "outReqs": [
+            {
+                "count": 20,
+                "elements": [{
+                    "name": "S", "id": "s1", "x": 1, "y": 1, "bonds": ["o1","o2","o3","o4"]
+                },{
+                    "name": "O", "id": "o1", "x": 0, "y": 1, "bonds": ["s1","h1"]
+                },{
+                    "name": "O", "id": "o2", "x": 2, "y": 1, "bonds": ["s1","h2"]
+                },{
+                    "name": "O", "id": "o3", "x": 1, "y": 0, "bonds": ["s1","h3"]
+                },{
+                    "name": "O", "id": "o4", "x": 1, "y": 2, "bonds": ["s1"]
+                },{
+                    "name": "H", "id": "h1", "x": 0, "y": 0, "bonds": ["o1"]
+                },{
+                    "name": "H", "id": "h2", "x": 2, "y": 2, "bonds": ["o2"]
+                },{
+                    "name": "H", "id": "h3", "x": 2, "y": 0, "bonds": ["o3"]
+                }],
+                "bonds": [
+                    { "count": 1, "left": "s1", "right": "o1" },
+                    { "count": 1, "left": "s1", "right": "o2" },
+                    { "count": 1, "left": "s1", "right": "o3" },
+                    { "count": 2, "left": "s1", "right": "o4" },
+                    { "count": 1, "left": "o1", "right": "h1" },
+                    { "count": 1, "left": "o2", "right": "h2" },
+                    { "count": 1, "left": "o3", "right": "h3" }
+                ],
+                x: 23, y: 20, w: 2, h: 3
+            }
+        ],
+        "reactors": ["sensor", "fuser"],
+        "production": true
+    },
+    {
         "name": "Hephaestus IV: Like a Boss",
         "section": "Hephaestus IV",
         "alpha": {
@@ -1374,5 +1460,143 @@ window.configs = [
         },
         bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }],
         sensor: { x: 4, y: 1 }
+    },
+    {
+        "name": "Atropos Station: The Blue Danube",
+        "section": "Atropos Station",
+        "alpha": {
+            "in": [{
+                "probability": 50,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": []
+            }, {
+                "probability": 50,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": ["h2"]
+                }, {
+                    "name": "H", "id": "h2", "x": 2, "y": 1, "bonds": ["h1"]
+                }],
+                "bonds": [{"count": 1, "left": "h1", "right": "h2"}]
+            }],
+            "outReqs": {
+                "count": 10,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": ["h2"]
+                }, {
+                    "name": "H", "id": "h2", "x": 2, "y": 1, "bonds": ["h1"]
+                }],
+                "bonds": [{ "count": 1, "left": "h1", "right": "h2" }]
+            }
+        }, "beta": {
+            "in": [],
+            "outReqs": {
+            }
+        },
+        bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }],
+        sensor: { x: 4, y: 1 },
+        type: "flipflop"
+    },
+    {
+        "name": "Atropos Station: No Stomach For Lunch",
+        "section": "Atropos Station",
+        "alpha": {
+            "in": [{
+                "probability": 100,
+                "elements": [{ "name": "H", "id": "h1", x: 0, y: 1, bonds:["c1"]}, 
+                    { "name": "H", "id": "h2", x: 1, y: 0, bonds:["c1"] },
+                    { "name": "H", "id": "h3", x: 1, y: 2, bonds:["c1"] },
+                    { "name": "H", "id": "h4", x: 2, y: 0, bonds:["c2"] }, 
+                    { "name": "H", "id": "h5", x: 2, y: 2, bonds:["c2"] },
+                    { "name": "H", "id": "h6", x: 3, y: 1, bonds:["c2"] },
+                    { "name": "C", "id": "c1", x: 1, y: 1, bonds:["h1","h2","h3","c2"] },
+                    { "name": "C", "id": "c2", x: 2, y: 1, bonds:["h4","h5","h6","c1"] }],
+                "bonds": [{ "count": 1, "left": "h1", "right": "c1" }, 
+                    { "count": 1, "left": "h2", "right": "c1" }, 
+                    { "count": 1, "left": "h3", "right": "c1" },
+                    { "count": 1, "left": "h4", "right": "c2" }, 
+                    { "count": 1, "left": "h5", "right": "c2" }, 
+                    { "count": 1, "left": "h6", "right": "c2" },
+                    { "count": 1, "left": "c1", "right": "c2" }]
+            }],
+            "outReqs": {
+                "count": 10,
+                "elements": [ 
+                { "name": "H", "id": "h2", x: 1, y: 0, bonds:["c1"] },
+                { "name": "H", "id": "h3", x: 1, y: 2, bonds:["c1"] },
+                { "name": "H", "id": "h4", x: 2, y: 0, bonds:["c2"] }, 
+                { "name": "H", "id": "h5", x: 2, y: 2, bonds:["c2"] },
+                { "name": "C", "id": "c1", x: 1, y: 1, bonds:["c2","h2","h3"] },
+                { "name": "C", "id": "c2", x: 2, y: 1, bonds:["h4","h5","c1"] }],
+            "bonds": [
+                { "count": 1, "left": "h2", "right": "c1" }, 
+                { "count": 1, "left": "h3", "right": "c1" },
+                { "count": 1, "left": "h4", "right": "c2" }, 
+                { "count": 1, "left": "h5", "right": "c2" }, 
+                { "count": 2, "left": "c1", "right": "c2" }]
+            }
+        }, "beta": {
+            "in": [],
+            "outReqs": {
+                "count": 10,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": ["h2"]
+                }, {
+                    "name": "H", "id": "h2", "x": 2, "y": 1, "bonds": ["h1"]
+                }],
+                "bonds": [{ "count": 1, "left": "h1", "right": "h2" }]
+            }
+        },
+        bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }],
+        type: "flipflop"
+    },
+    {
+        "name": "Atropos Station: No Employment Record Found",
+        "section": "Atropos Station",
+        "alpha": {
+            "in": [{
+                "probability": 33,
+                "elements": [{
+                    "name": "B", "id": "b1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": []
+            }, {
+                "probability": 33,
+                "elements": [{
+                    "name": "Al", "id": "al1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": []
+            }, {
+                "probability": 34,
+                "elements": [{
+                    "name": "Si", "id": "si1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": []
+            }],
+            "outReqs": {
+                "count": 10,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": ["cl1"]
+                }, {
+                    "name": "Cl", "id": "cl1", "x": 2, "y": 1, "bonds": ["h1"]
+                }],
+                "bonds": [{ "count": 1, "left": "h1", "right": "cl1" }]
+            }
+        }, "beta": {
+            "in": [{
+                "probability": 100,
+                "elements": [{
+                    "name": "H", "id": "h1", "x": 1, "y": 1, "bonds": []
+                }],
+                "bonds": []
+            }],
+            "outReqs": {
+            }
+        },
+        bonders: [{ x: 4, y: 3 }, { x: 4, y: 4 }],
+        fuser: { x: 4, y: 2 },
+        sensor: { x: 4, y: 1 },
+        type: "flipflop"
     }
 ]

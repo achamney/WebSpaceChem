@@ -1,6 +1,8 @@
 ﻿window.MASTERURL="https://jsonbox.io/box_42bb8d0f3b1497aab3f3/";
 window.MAINJSONBOX="5f6899f9fe562d0017af573e";
 window.undoStackSize = 10;
+
+window.personalData = { levels: [] };
 window.onload = function () {
     get("begin").onclick = beginButtonFn;
     var levels = get("levels");
@@ -129,6 +131,7 @@ function loadGame(config, container, reactor) {
             sensor: config.sensor,
             fuser: config.fuser
         }
+        reactor.type=config.type;
         if (reactor.alpha.outReqs) {
             reactor.alpha.outReqs.maxCount = reactor.alpha.outReqs.count;
         }
@@ -697,6 +700,10 @@ function makeBuildButtons(canvas) {
         makebtns(greekMode, 'button', buttonContainer, 'Fuse (f)', mapsizex + 10, buttonpos += 50, "Fuse",
             function () { curSymbol = "Fuse" });
     }
+    if (curReactor.type=="flipflop") {
+        makebtns(greekMode, 'button', buttonContainer, 'FlipFlop', mapsizex + 10, buttonpos += 50, "FlipFlop",
+            function () { curSymbol = "FlipFlop" });
+    }
     makebtns(greekMode, 'button', buttonContainer, '&#9650; (w)', mapsizex + 10, buttonpos += 50, "Up",
         function () { curSymbol = "Up" }, 40);
     makebtns(greekMode, 'button', buttonContainer, '&#9660; (s)', mapsizex + 10 + 36, buttonpos, "Down",
@@ -770,7 +777,15 @@ function stopGame(canvas) {
     curReactor.beta.outReqs.count = curReactor.beta.outReqs.maxCount;
     curReactor.alpha.entrance = [];
     curReactor.beta.entrance = [];
+    allSymbols(curReactor).forEach(s=> {
+        if (s.name=="FlipFlop") {
+            s.reset();
+        }
+    });
     cycles = 0;
+}
+function allSymbols(reactor) {
+    return reactor.alpha.symbols.concat(reactor.beta.symbols);
 }
 function makebtns(greekMode, tagname, parent, text, left, top, name, funct, width, height) {
     var ret = makebtn(tagname, parent, text, left, top, funct, width, height);

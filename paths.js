@@ -8,7 +8,7 @@ window.makePath = function(start, greek, greekMode) {
             curSym = symAtCoords(greek.symbols, curLoc, "arrow");
             var sensSym = symAtCoords(greek.symbols, curLoc);
             var oldDir = curLoc.dir;
-            if (sensSym && sensSym.sensor) {
+            if (sensSym && (sensSym.sensor|| sensSym.name=="FlipFlop")) {
                 var cloneCurLoc = clone(curLoc);
                 cloneCurLoc.dir = sensSym.direction;
                 createPathEl(cloneCurLoc);

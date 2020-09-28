@@ -105,6 +105,12 @@ button {
 .start::after {
 	content: 'Start';
 }
+.flipflop.flip::after {
+	content: 'Flip';
+}
+.flipflop.flop::after {
+	content: 'Flop';
+}
 .line {
     pointer-events: none;
     z-index:0;
