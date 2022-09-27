@@ -1,5 +1,5 @@
-﻿window.MASTERURL="https://jsonbox.io/box_42bb8d0f3b1497aab3f3/";
-window.MAINJSONBOX="5f6899f9fe562d0017af573e";
+﻿window.MASTERURL="https://achamney.pythonanywhere.com/";
+window.MAINJSONBOX="webspacechem";
 window.undoStackSize = 10;
 
 window.personalData = { levels: [] };
@@ -37,7 +37,7 @@ window.onload = function () {
     function makeNewSave(uniqueName) {
         window.personalData = { levels: [] };
         $.ajax({
-            url: MASTERURL,
+            url: MASTERURL+"make",
             type: "POST",
             data: JSON.stringify(personalData),
             contentType: "application/json; charset=utf-8",
@@ -846,10 +846,10 @@ function showSymSpecificButtons(buttons, element) {
 
 function updatePersonalData() {
     var user = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
-    var url = MASTERURL + user.id;
+    var url = MASTERURL + "set/"+user.id;
     $.ajax({
         url: url,
-        type: "PUT",
+        type: "POST",
         data: JSON.stringify(personalData),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -859,15 +859,15 @@ function updatePersonalData() {
 }
 function updateWebData() {
     var url = localStorage.getItem("devStats");
-    url = url || MASTERURL+MAINJSONBOX;
+    url = url || MASTERURL+"set/"+MAINJSONBOX;
     $.ajax({
         url: url,
-        type: "PUT",
+        type: "POST",
         data: JSON.stringify(levelWebData),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (data, textStatus, jqXHR) {
-            window.levelWebData = data;
+            window.levelWebData = JSON.parse(data);
         }
     });
 }
@@ -888,14 +888,14 @@ window.getLevelWebData = function (callback) {
     var url = localStorage.getItem("devStats");
     url = url || MASTERURL+MAINJSONBOX;
     $.get(url, function (data, textStatus, jqXHR) {
-        callback(data);
+        callback(JSON.parse(data));
     });
 }
 window.getPersonalData = function () {
     var me = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
     var url = MASTERURL + me.id;
     $.get(url, function (data, textStatus, jqXHR) {
-        window.personalData = data;
+        window.personalData = JSON.parse(data);
     });
 }
 window.fixStats = function () {

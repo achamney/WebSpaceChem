@@ -49,6 +49,7 @@ window.openHighScores = function (symbols) {
         var promiseArray = [];
         for (var person of levelWebData.uniqueNames) {
             promiseArray.push($.get(MASTERURL + person.id, function (data, textStatus, jqXHR) {
+                data = JSON.parse(data);
                 if (data.levels && data.levels.length > 0) {
                     var thisLevel = data.levels.filter(l => l.name == levelName)[0];
                     if (thisLevel) {
