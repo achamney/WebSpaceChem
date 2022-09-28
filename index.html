@@ -12,11 +12,11 @@
                 "alpha": {
                     "in": [{
                         "probability": 100,
-                        "elements": [{"name": "O", "x": 2, "y": 2 }], 
+                        "elements": [{"name": "O", "x": 2, "y": 2 }],
                         "bonds": []
                     }],
-                    "outReqs": { 
-                        "count": 10, 
+                    "outReqs": {
+                        "count": 10,
                         "elements":[{"name":"H", "id":"H1", "x": 1, "y": 1},{"name":"O", "id":"O2", "x": 2, "y": 1},{"name":"H", "id":"H3", "x": 3, "y": 1}],
                         "bonds":[{ "count": 1, "left": "H1", "right": "O2" },{ "count": 1, "left": "O2", "right": "H3" }]
                     }
@@ -24,7 +24,7 @@
                     "in": [{
                         "probability": 100,
                         "elements": [
-                            {"name": "H", "id":"h1", "x": 2, "y": 1, "bonds":["h2"] }, 
+                            {"name": "H", "id":"h1", "x": 2, "y": 1, "bonds":["h2"] },
                             {"name": "H", "id":"h2", "x": 3, "y": 1, "bonds":["h1"] }
                         ],
                         "bonds": [{ "count": 1, "left": "h1", "right": "h2" }]
@@ -72,26 +72,27 @@
 </body>
 
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-<script src="configs.js"></script>
-<script src="markgen.js"></script>
-<script src="dragselect.js"></script>
-<script src="symbolarrows.js"></script>
-<script src="symbolbond.js"></script>
-<script src="symbolgrab.js"></script>
-<script src="symbolin.js"></script>
-<script src="symbolout.js"></script>
-<script src="symbolstart.js"></script>
-<script src="symbolrotate.js"></script>
-<script src="symbolsync.js"></script>
-<script src="symbolsensor.js"></script>
-<script src="symbolfuse.js"></script>
-<script src="symbolflipflop.js"></script>
-<script src="periodictable.js"></script>
-<script src="particle.js"></script>
-<script src="highscores.js"></script>
-<script src="runtimers.js"></script>
-<script src="paths.js"></script>
-<script src="production.js"></script>
-<script src="prodbuilds.js"></script>
-<script src="game.js"></script>
+<script src="js/netCode.js"></script>
+<script src="js/configs.js"></script>
+<script src="js/markgen.js"></script>
+<script src="js/dragselect.js"></script>
+<script src="js/symbols/symbolarrows.js"></script>
+<script src="js/symbols/symbolbond.js"></script>
+<script src="js/symbols/symbolgrab.js"></script>
+<script src="js/symbols/symbolin.js"></script>
+<script src="js/symbols/symbolout.js"></script>
+<script src="js/symbols/symbolstart.js"></script>
+<script src="js/symbols/symbolrotate.js"></script>
+<script src="js/symbols/symbolsync.js"></script>
+<script src="js/symbols/symbolsensor.js"></script>
+<script src="js/symbols/symbolfuse.js"></script>
+<script src="js/symbols/symbolflipflop.js"></script>
+<script src="js/periodictable.js"></script>
+<script src="js/particle.js"></script>
+<script src="js/highscores.js"></script>
+<script src="js/runtimers.js"></script>
+<script src="js/paths.js"></script>
+<script src="js/production.js"></script>
+<script src="js/prodbuilds.js"></script>
+<script src="js/game.js"></script>
 </html>

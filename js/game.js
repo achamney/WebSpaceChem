@@ -24,30 +24,24 @@ window.onload = function () {
     var uniqueNameInput = get("uniqueNameInput");
     window.uniqueName = localStorage.getItem("uniqueName");
     uniqueNameInput.value = uniqueName;
-    getLevelWebData(data => {
+    getLevelWebData(async function(data) {
         window.levelWebData = data;
         if (!uniqueName) {
             window.uniqueName = Math.floor(Math.random() * 1000000) + "";
             localStorage.setItem("uniqueName", uniqueName);
             uniqueNameInput.value = uniqueName;
-            makeNewSave(uniqueName);
+            await makeNewSave(uniqueName);
         }
         getPersonalData();
     });
-    function makeNewSave(uniqueName) {
+    async function makeNewSave(uniqueName) {
         window.personalData = { levels: [] };
-        $.ajax({
-            url: MASTERURL+"make",
-            type: "POST",
-            data: JSON.stringify(personalData),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function (data, textStatus, jqXHR) {
-                var uri = data["_id"];
-                levelWebData.uniqueNames.push({ name: uniqueName, id: uri });
-                updateWebData();
-            }
-        });
+        return netService.make(window.personalData)
+          .then(function (data, textStatus, jqXHR) {
+            var uri = data["_id"];
+            levelWebData.uniqueNames.push({ name: uniqueName, id: uri });
+            updateWebData();
+        })
     }
     function makeSection(level) {
         var levels = get("levels");
@@ -844,32 +838,16 @@ function showSymSpecificButtons(buttons, element) {
         buttons(element);
 }
 
+
 function updatePersonalData() {
     var user = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
-    var url = MASTERURL + "set/"+user.id;
-    $.ajax({
-        url: url,
-        type: "POST",
-        data: JSON.stringify(personalData),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function (data, textStatus, jqXHR) {
-        }
-    });
+    netService.set(window.personalData, user.id);
 }
 function updateWebData() {
-    var url = localStorage.getItem("devStats");
-    url = url || MASTERURL+"set/"+MAINJSONBOX;
-    $.ajax({
-        url: url,
-        type: "POST",
-        data: JSON.stringify(levelWebData),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function (data, textStatus, jqXHR) {
-            window.levelWebData = JSON.parse(data);
-        }
-    });
+    netService.set(levelWebData, MAINJSONBOX)
+      .then(function (data, textStatus, jqXHR) {
+          window.levelWebData = data;
+      });
 }
 
 window.traverseBonds = function (el, visit) {
@@ -885,46 +863,16 @@ function traverseBondsIter(el, visit, visited) {
     }
 }
 window.getLevelWebData = function (callback) {
-    var url = localStorage.getItem("devStats");
-    url = url || MASTERURL+MAINJSONBOX;
-    $.get(url, function (data, textStatus, jqXHR) {
-        callback(JSON.parse(data));
-    });
+    netService.get(MAINJSONBOX)
+      .then(function (data, textStatus, jqXHR) {
+          callback(data);
+      });
 }
 window.getPersonalData = function () {
     var me = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
     var url = MASTERURL + me.id;
-    $.get(url, function (data, textStatus, jqXHR) {
-        window.personalData = JSON.parse(data);
-    });
-}
-window.fixStats = function () {
-    var uniqueNames = levelWebData.uniqueNames.concat([]);
-    levelWebData.uniqueNames = [];
-    for (var name of uniqueNames) {
-        runSave(name);
-    }
-    function runSave(person) {
-        var myUserData = { levels: [], name: person.name };
-        for (var level of configs) {
-            var levelData = levelWebData[level.name][person.name];
-            if (levelData) {
-                levelData.name = level.name;
-                myUserData.levels.push(levelData);
-            }
-        }
-        $.ajax({
-            url: MASTERURL,
-            type: "POST",
-            data: JSON.stringify(myUserData),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function (data, textStatus, jqXHR) {
-                var uri = data["_id"];
-                console.log(data);
-                levelWebData.uniqueNames.push({ name: person.name, id: uri });
-                //updateWebData();
-            }
-        });
-    }
+    netService.get(me.id)
+      .then(function (data, textStatus, jqXHR) {
+          window.personalData = data;
+      });
 }
