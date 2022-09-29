@@ -1,4 +1,5 @@
-﻿window.symbolGrab = {
+import * as symsrv from './symbolservice.js';
+symsrv.registerSymbol({
     place: function (greek, sq) {
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
         var sym = makesym('div', sq, 'symbol grabdrop ' + greek.mode, 0, 0, 50, 50, createGrabSubButtons(greek));
@@ -27,7 +28,7 @@
         setGrid(sym, sq, sq);
         return sym;
     }
-}
+},"Grab");
 function createGrabSubButtons(greek) {
     return function (sym) {
         var butList = [], parent = get("symButtons" + curReactor.id);
@@ -64,17 +65,17 @@ function createGrabSubButtons(greek) {
         }, 100, 50));
     }
 }
-window.saveSymGrab = function (sym) {
+symsrv.registerSave(function (sym) {
     var ret = saveBase(sym);
     ret.greek = sym.greek;
     ret.grab = sym.grab;
     return ret;
-};
-window.symLoadGrab = function (symEl, saveState) {
+},"Grab");
+symsrv.registerLoad(function (symEl, saveState) {
     symEl.greek = saveState.greek;
     if (saveState.grab != symEl.grab) {
         symEl.classList.remove(symEl.grab);
         symEl.classList.add(saveState.grab);
     }
     symEl.grab = saveState.grab;
-};
+},"Grab");

@@ -1,4 +1,6 @@
-
+import * as game from "./game.js"
+import * as prod from "./production.js"
+import {deselectAll,deleteDrag} from './dragselect.js';
 window.makeSource = function (sq, inData) {
     var source = makesq("div", sq, "building source", 0, 0, inData.w * mapsizex / gridNumX, inData.h * mapsizey / gridNumY);
     setGrid(source, sq, sq);
@@ -9,7 +11,7 @@ window.makeSource = function (sq, inData) {
     source.innerHTML = "<div class='buildingtext'>&#9654;&#9654;</div>"
     source.produceElement = function () {
         var parentSquare = source.downstream.parentSquare;
-        makeProdElement(parentSquare, inData.inProb);
+        prod.makeProdElement(parentSquare, inData.inProb);
     }
     var xmod = -82;
     var ymod = 0;
@@ -18,7 +20,7 @@ window.makeSource = function (sq, inData) {
         var inDetailBox = make("div", source, "inDetailBox");
         inDetailBox.style.left = xmod + "px";
         inDetailBox.style.top = ymod + "px";
-        makeInOutBox(inDetailBox, prob.elements, prob.bonds, "", 0);
+        game.makeInOutBox(inDetailBox, prob.elements, prob.bonds, "", 0);
         xmod -= 82;
         fixXmod();
     }
@@ -51,7 +53,7 @@ window.makeDeposit = function (sq, outData) {
             return null;
         };
         var outReqBox = make("div", outEl, "outReqBox");
-        makeInOutBox(outReqBox, outData.elements, outData.bonds, "", 0);
+        game.makeInOutBox(outReqBox, outData.elements, outData.bonds, "", 0);
     } else {
         outEl.innerHTML = "<div class='buildingtext'>&#10006;</div>";
         outEl.entrance = {
@@ -74,16 +76,16 @@ window.makeDeposit = function (sq, outData) {
 }
 window.reactorstandard = {
     place: function (sq) {
-        if (prodCollide(sq, null, { x: 4, y: 4 })) return;
-        var sym = makereactor(sq, 'building reactor standard', makeProdDelButton());
+        if (prod.prodCollide(sq, null, { x: 4, y: 4 })) return;
+        var sym = makereactor(sq, 'building reactor standard', prod.makeProdDelButton());
         setGrid(sym, sq, sq);
         sym.innerHTML = "<div class='buildingtext'>&#9654; &#8478; &#9654;</div>";
         sym.bonders = [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }];
         sym.outPipes = [];
         var pipe1Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 1 });
         var pipe2Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 2 });
-        sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
-        sym.outPipes.push(makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
         reactorCommon(sym, "standard");
         sym.getEntrance = function (x, y) {
             var diffy = y - sym.gridy;
@@ -104,21 +106,27 @@ window.reactorstandard = {
             } else {
                 greek.in = [];
             }
-            makeRequirements(getReactorCanvas(sym), sym);
+            game.makeRequirements(prod.getReactorCanvas(sym), sym);
         }
         return sym;
     }
 };
+function getSourceFromPipe(pipe) {
+    while (pipe.upstream) {
+        pipe = pipe.upstream;
+    }
+    return pipe;
+}
 window.reactorassembly = {
     place: function (sq) {
-        if (prodCollide(sq, null, { x: 4, y: 4 })) return;
-        var sym = makereactor(sq, 'building reactor assembly', makeProdDelButton());
+        if (prod.prodCollide(sq, null, { x: 4, y: 4 })) return;
+        var sym = makereactor(sq, 'building reactor assembly', prod.makeProdDelButton());
         setGrid(sym, sq, sq);
         sym.innerHTML = "<div class='buildingtext'>&#10010; &#8478; &#9654;</div>";
         sym.bonders = [{ x: 4, y: 3, type: "a" }, { x: 4, y: 4, type: "a" }, { x: 5, y: 3, type: "a" }, { x: 5, y: 4, type: "a" }];
         sym.outPipes = [];
         var pipe1Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 1 });
-        sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
         reactorCommon(sym, "assembly");
         sym.getEntrance = function (x, y) {
             var diffy = y - sym.gridy;
@@ -139,23 +147,23 @@ window.reactorassembly = {
             } else {
                 greek.in = [];
             }
-            makeRequirements(getReactorCanvas(sym), sym);
+            game.makeRequirements(prod.getReactorCanvas(sym), sym);
         }
         return sym;
     }
 };
 window.reactordisassembly = {
     place: function (sq) {
-        if (prodCollide(sq, null, { x: 4, y: 4 })) return;
-        var sym = makereactor(sq, 'building reactor disassembly', makeProdDelButton());
+        if (prod.prodCollide(sq, null, { x: 4, y: 4 })) return;
+        var sym = makereactor(sq, 'building reactor disassembly', prod.makeProdDelButton());
         setGrid(sym, sq, sq);
         sym.innerHTML = "<div class='buildingtext'>&#10006; &#8478; &#9654;</div>";
         sym.bonders = [{ x: 4, y: 3, type: "d" }, { x: 4, y: 4, type: "d" }, { x: 5, y: 3, type: "d" }, { x: 5, y: 4, type: "d" }];
         sym.outPipes = [];
         var pipe1Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 1 });
         var pipe2Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 2 });
-        sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
-        sym.outPipes.push(makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
         reactorCommon(sym, "disassembly");
         sym.getEntrance = function (x, y) {
             var diffy = y - sym.gridy;
@@ -174,15 +182,15 @@ window.reactordisassembly = {
             } else {
                 greek.in = [];
             }
-            makeRequirements(getReactorCanvas(sym), sym);
+            game.akeRequirements(prod.getReactorCanvas(sym), sym);
         }
         return sym;
     }
 };
 window.reactorsensor = {
     place: function (sq) {
-        if (prodCollide(sq, null, { x: 4, y: 4 })) return;
-        var sym = makereactor(sq, 'building reactor buildsensor', makeProdDelButton());
+        if (prod.prodCollide(sq, null, { x: 4, y: 4 })) return;
+        var sym = makereactor(sq, 'building reactor buildsensor', prod.makeProdDelButton());
         setGrid(sym, sq, sq);
         sym.innerHTML = "<div class='buildingtext'>&#927; &#8478; &#9654;</div>";
         sym.bonders = [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }];
@@ -190,8 +198,8 @@ window.reactorsensor = {
         sym.outPipes = [];
         var pipe1Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 1 });
         var pipe2Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 2 });
-        sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
-        sym.outPipes.push(makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
         reactorCommon(sym, "sensor");
         sym.getEntrance = function (x, y) {
             var diffy = y - sym.gridy;
@@ -212,15 +220,15 @@ window.reactorsensor = {
             } else {
                 greek.in = [];
             }
-            makeRequirements(getReactorCanvas(sym), sym);
+            game.makeRequirements(prod.getReactorCanvas(sym), sym);
         }
         return sym;
     }
 };
 window.reactorfuser = {
     place: function (sq) {
-        if (prodCollide(sq, null, { x: 4, y: 4 })) return;
-        var sym = makereactor(sq, 'building reactor buildfuser', makeProdDelButton());
+        if (prod.prodCollide(sq, null, { x: 4, y: 4 })) return;
+        var sym = makereactor(sq, 'building reactor buildfuser', prod.makeProdDelButton());
         setGrid(sym, sq, sq);
         sym.innerHTML = "<div class='buildingtext'>&#9901; &#8478; &#9654;</div>";
         sym.bonders = [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }];
@@ -228,8 +236,8 @@ window.reactorfuser = {
         sym.outPipes = [];
         var pipe1Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 1 });
         var pipe2Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 2 });
-        sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
-        sym.outPipes.push(makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
         reactorCommon(sym, "fuser");
         sym.getEntrance = function (x, y) {
             var diffy = y - sym.gridy;
@@ -250,23 +258,23 @@ window.reactorfuser = {
             } else {
                 greek.in = [];
             }
-            makeRequirements(getReactorCanvas(sym), sym);
+            game.makeRequirements(prod.getReactorCanvas(sym), sym);
         }
         return sym;
     }
 };
 window.reactorflipflop = {
     place: function (sq) {
-        if (prodCollide(sq, null, { x: 4, y: 4 })) return;
-        var sym = makereactor(sq, 'building reactor buildflipflop', makeProdDelButton());
+        if (prod.prodCollide(sq, null, { x: 4, y: 4 })) return;
+        var sym = makereactor(sq, 'building reactor buildflipflop', prod.makeProdDelButton());
         setGrid(sym, sq, sq);
         sym.innerHTML = "<div class='buildingtext'>F &#8478; &#9654;</div>";
         sym.bonders = [{ x: 4, y: 3 }, { x: 4, y: 4 }, { x: 5, y: 3 }, { x: 5, y: 4 }];
         sym.outPipes = [];
         var pipe1Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 1 });
         var pipe2Spot = symAtCoords(productionSquares, { x: sq.gridx + 4, y: sq.gridy + 2 });
-        sym.outPipes.push(makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
-        sym.outPipes.push(makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe1Spot, { x: 1, y: 0 }, sym));
+        sym.outPipes.push(prod.makePipe(pipe2Spot, { x: 1, y: 0 }, sym));
         reactorCommon(sym, "flipflop");
         sym.getEntrance = function (x, y) {
             var diffy = y - sym.gridy;
@@ -287,13 +295,13 @@ window.reactorflipflop = {
             } else {
                 greek.in = [];
             }
-            makeRequirements(getReactorCanvas(sym), sym);
+            game.makeRequirements(prod.getReactorCanvas(sym), sym);
         }
         return sym;
     }
 };
 function reactorCommon(sym, name) {
-    var contentContainer = getReactorCanvas(sym);
+    var contentContainer = prod.getReactorCanvas(sym);
     make("div", contentContainer, "reqs");
     var els = make("div", contentContainer, "elementsProd");
     els.id = `elements${sym.id}`;
@@ -308,11 +316,12 @@ function reactorCommon(sym, name) {
         beta: {
             in: [], outReqs: {}
         },
+        type: sym.type,
         bonders: sym.bonders,
         sensor: sym.sensor,
         fuser: sym.fuser
     };
-    loadGame(config, contentContainer.id, sym);
+    game.loadGame(config, contentContainer.id, sym);
     sym.alpha.entrance = sym.alpha.entrance || [];
     sym.beta.entrance = sym.beta.entrance || [];
 }
@@ -321,7 +330,7 @@ function makereactor(parent, classes, selectFunction) {
     ret.onclick = function (event) {
         var currentTime = (new Date()).getTime();
         if (currentTime - doubleClick < 500) {
-            openReactor(ret);
+            prod.openReactor(ret);
         }
         doubleClick = currentTime;
         ret.selected = true;
@@ -332,7 +341,7 @@ function makereactor(parent, classes, selectFunction) {
     ret.draggable = true;
     ret.ondragstart = function (event) {
         deleteDrag();
-        deleteReactorPipes(ret);
+        prod.deleteReactorPipes(ret);
         window.setTimeout(function () {
             ret.style['z-index'] = "-1";
         });
@@ -351,7 +360,7 @@ function makereactor(parent, classes, selectFunction) {
             </div>
         </div>`;
     setupModal(popup.id);
-    var modalContainer = getReactorCanvas(ret);
+    var modalContainer = prod.getReactorCanvas(ret);
     modalContainer.style.height = "580px";
     var symButtons = make("div", modalContainer, "symButtons");
     symButtons.id = "symButtons" + ret.id;

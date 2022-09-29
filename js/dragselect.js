@@ -1,3 +1,4 @@
+
 var dragId, enableDrag, dragTimeout;
 window.doubleClick = 0;
 window.primeDragSelect = function (e, canvas) {
@@ -74,12 +75,24 @@ window.selectSymbols = function (e, canvas) {
 
         deleteDrag();
     }
-    
+
 }
-function deleteDrag() {
+export function deleteDrag() {
     if (get(dragId)) {
         delElement(get(dragId));
         dragId = null;
+    }
+}
+export function deselectAll() {
+    for (var i = 0; i < curReactor.alpha.symbols.length; i++) {
+        var sym = curReactor.alpha.symbols[i];
+        sym.selected = false;
+        sym.classList.remove("selected");
+    }
+    for (var i = 0; i < curReactor.beta.symbols.length; i++) {
+        var sym = curReactor.beta.symbols[i];
+        sym.selected = false;
+        sym.classList.remove("selected");
     }
 }
 window.makeDragDelButton = function (canvas) {

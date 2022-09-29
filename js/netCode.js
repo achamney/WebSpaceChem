@@ -1,3 +1,4 @@
+
 window.netService = {
     get: function (id) { },
     set: function (json) { },

@@ -1,4 +1,5 @@
-﻿window.symbolBond = {
+import * as symsrv from './symbolservice.js';
+symsrv.registerSymbol({
     place: function (greek, sq) {
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
         var sym = makesym('div', sq, 'symbol bond ' + greek.mode, 0, 0, 50, 50, createBondSubButtons(greek));
@@ -45,8 +46,8 @@
         setGrid(sym, sq, sq);
         return sym;
     }
-}
-window.adjustBondBars = function (element, divisor, secondEl) {
+}, "Bond");
+export function adjustBondBars(element, divisor, secondEl) {
     divisor = divisor || 1;
     for (var bondbar of element.bondBars) {
         delElement(bondbar);
@@ -63,7 +64,7 @@ window.adjustBondBars = function (element, divisor, secondEl) {
         var difx = Math.round(bond.gridx - element.gridx);
         var dify = Math.round(bond.gridy - element.gridy);
         var width = difx != 0 ? 20 / divisor : 5 / divisor;
-        var height = dify != 0 ? 20 / divisor : 5 / divisor; 
+        var height = dify != 0 ? 20 / divisor : 5 / divisor;
         var spread = 7 / divisor,
             startSpread = -count/2*spread/2;
         for (var i = 0; i < count; i++) {
@@ -80,7 +81,7 @@ window.adjustBondBars = function (element, divisor, secondEl) {
             } else if (dify < 0) {
                 bondBar.style.top = (-20 / divisor) + "px";
                 bondBar.style.left = (startSpread + 20 / divisor) + "px";
-            } 
+            }
             element.bondBars.push(bondBar);
             startSpread += spread;
         }
@@ -152,17 +153,17 @@ function adjacent(el1, el2) {
     }
     return false;
 }
-window.saveSymBond = function (sym) {
+symsrv.registerSave(function(sym) {
     var ret = saveBase(sym);
     ret.greek = sym.greek;
     ret.bond = sym.bond;
     return ret;
-};
-window.symLoadBond = function (symEl, saveState) {
+}, 'Bond');
+symsrv.registerLoad(function (symEl, saveState) {
     symEl.greek = saveState.greek;
     if (saveState.bond == "debond") {
         symEl.classList.remove(symEl.bond);
         symEl.classList.add(saveState.bond);
     }
     symEl.bond = saveState.bond;
-};
+}, "Bond");

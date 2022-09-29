@@ -1,4 +1,5 @@
-﻿window.symbolSensor = {
+import * as symsrv from './symbolservice.js';
+symsrv.registerSymbol({
     place: function (greek, sq) {
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
         var sym = makesym('div', sq, 'symbol sensorSym ' + greek.mode, 0, 0, 50, 50, makeSensorButtons(greek));
@@ -20,7 +21,7 @@
         sym.input = elInput;
         return sym;
     }
-}
+},"Sensor");
 function getElOnSensor(elements, sen) {
     for (var el of elements.childNodes) {
         if (el.gridx == sen.gridx && el.gridy == sen.gridy) {
@@ -67,14 +68,14 @@ function makeSensorButtons(greek) {
         }, 100, 50));
     };
 }
-window.saveSymSensor = function (sym) {
+symsrv.registerSave(function (sym) {
     var ret = saveBase(sym);
     ret.sensor = true;
     ret.direction = sym.direction;
     ret.input = sym.input.value;
     return ret;
-};
-window.symLoadSensor = function (symEl, saveState) {
+},"Sensor");
+symsrv.registerLoad(function (symEl, saveState) {
     symEl.direction = saveState.direction;
     symEl.input.value = saveState.input;
-};
+},"Sensor");

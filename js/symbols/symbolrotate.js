@@ -1,7 +1,9 @@
-﻿window.symbolRotate = {
+import * as symsrv from './symbolservice.js';
+import { adjustBondBars } from "./symbolbond.js";
+symsrv.registerSymbol({
     place: function (greek, sq) {
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
-        
+
         var sym = makesym('div', sq, 'symbol rotate clock ' + greek.mode, 0, 0, 50, 50, createRotateSubButtons(greek));
         sym.direction = "clock";
         sym.name = "Rotate";
@@ -12,7 +14,7 @@
         setGrid(sym, sq, sq);
         return sym;
     }
-}
+},"Rotate");
 function createRotateSubButtons(greek) {
     return function () {
         var butList = [], parent = get("symButtons" + curReactor.id);
@@ -94,15 +96,15 @@ function identicalBond(bonds, el1, el2) {
     return bonds.filter(b => (b.left == el1 && b.right == el2) ||
         (b.right == el1 && b.left == el2)).length > 0;
 }
-window.saveSymRotate = function (sym) {
+symsrv.registerSave(function (sym) {
     var ret = saveBase(sym);
     ret.direction = sym.direction;
     return ret;
-};
-window.symLoadRotate = function (symEl, saveState) {
+},"Rotate");
+symsrv.registerLoad(function (symEl, saveState) {
     if (saveState.direction != symEl.direction) {
         symEl.classList.remove(symEl.direction);
         symEl.classList.add(saveState.direction);
     }
     symEl.direction = saveState.direction;
-};
+},"Rotate");

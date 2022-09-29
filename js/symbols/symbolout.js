@@ -1,4 +1,5 @@
-﻿window.symbolOut = {
+import * as symsrv from './symbolservice.js';
+symsrv.registerSymbol({
     place: function (greek, sq) {
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
         var sym = makesym('div', sq, 'symbol out Out' + greek.mode + ' ' + greek.mode, 0, 0, 50, 50, createOutSubButtons(greek));
@@ -8,7 +9,7 @@
         setGrid(sym, sq, sq);
         return sym;
     }
-}
+},"Out");
 window.outFn = function (sym, greek) {
     var elements = get("elements" + greek.reactorId);
     return function (greekName, g) {
@@ -38,7 +39,7 @@ window.outFn = function (sym, greek) {
         }
     };
 }
-function elementsGrabbed(element) {
+export function elementsGrabbed(element) {
     var grabbed = false;
     traverseBonds(element, b => {
         if (b.grabbed)
@@ -57,7 +58,7 @@ function performOut(greek, walGreek, element, outed) {
         walGreek.waldo.action = "out";
     }
 }
-function meetsRequirements(el, greek) {
+export function meetsRequirements(el, greek) {
     var els = [];
     traverseBonds(el, b => {
         els.push(b.symbol);
@@ -106,7 +107,7 @@ function removeNonDupes(bonds) {
         }
     }
 }
-function checkAllInBounds(el, boundChecker) {
+export function checkAllInBounds(el, boundChecker) {
     var withinBounds = true;
     traverseBonds(el, function (b) {
         if (!boundChecker(b.gridx, b.gridy)) {
@@ -164,12 +165,12 @@ function createOutSubButtons(greek) {
         }, 100, 50));
     }
 }
-window.saveSymOut = function (sym) {
+symsrv.registerSave(function (sym) {
     var ret = saveBase(sym);
     ret.greek = sym.greek;
     return ret;
-};
-window.symLoadOut = function (symEl, saveState) {
+},"Out");
+symsrv.registerLoad(function (symEl, saveState) {
     symEl.greek = saveState.greek;
     if (symEl.greek == "Alpha") {
         symEl.classList.add("OutAlpha");
@@ -179,48 +180,4 @@ window.symLoadOut = function (symEl, saveState) {
         symEl.classList.add("OutBeta");
         symEl.classList.remove("OutAlpha");
     }
-};
-
-window.prodOutFn = function (sym, greek) {
-    var elements = get("elements" + greek.reactorId);
-    return function (greekName, greekMode) {
-        var outed = false;
-        for (var i = elements.childNodes.length - 1; i >= 0; i--) {
-            var element = elements.childNodes[i];
-            var boundsFn = (x, y) => x > 5 && y < 4;
-            if (curReactor.alpha.outReqs.size == "large") {
-                boundsFn = (x, y) => x > 5;
-            }
-            if (element && !elementsGrabbed(element)) {
-                if (sym.greek == "Alpha") {
-                    if (checkAllInBounds(element, boundsFn)) {
-                        performProdOut(curReactor.alpha, greek, element, outed);
-                        outed = true;
-                    }
-                }
-                else if (sym.greek == "Beta") {
-                    if (checkAllInBounds(element, (x, y) => x > 5 && y >= 4)) {
-                        performProdOut(curReactor.beta, greek, element, outed);
-                        outed = true;
-                    }
-                }
-            }
-        }
-    };
-}
-function performProdOut(greek, walGreek, element, outed) {
-    if (!outed) {
-        var outElements = [];
-        traverseBonds(element, b => {
-            outElements.push(b);
-            delElement(b);
-        });
-        var reactor = get(greek.reactorId);
-        var outPipe = greek == reactor.alpha ? reactor.outPipes[0] : reactor.outPipes[1];
-        var inData = makeInDataFromElements({ childNodes: outElements }, 6);
-        makeProdElement(outPipe, inData);
-        walGreek.waldo.action = "move";
-    } else {
-        walGreek.waldo.action = "out";
-    }
-}
+},"Out");

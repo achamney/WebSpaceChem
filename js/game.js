@@ -1,4 +1,16 @@
-﻿window.MASTERURL="https://achamney.pythonanywhere.com/";
+import { } from "./symbols/symbolarrows.js";
+import { adjustBondBars } from "./symbols/symbolbond.js";
+import { } from "./symbols/symbolflipflop.js";
+import { } from "./symbols/symbolfuse.js";
+import { } from "./symbols/symbolgrab.js";
+import { } from "./symbols/symbolin.js";
+import { } from "./symbols/symbolout.js";
+import { } from "./symbols/symbolrotate.js";
+import { } from "./symbols/symbolsensor.js";
+import { } from "./symbols/symbolstart.js";
+import { } from "./symbols/symbolsync.js";
+import * as symsrv from './symbols/symbolservice.js';
+import {deselectAll,deleteDrag} from './dragselect.js';
 window.MAINJSONBOX="webspacechem";
 window.undoStackSize = 10;
 
@@ -96,7 +108,7 @@ function setConfig(config) {
     }
 }
 window.cycles = 0;
-function loadGame(config, container, reactor) {
+export function loadGame(config, container, reactor) {
     var canvas = get(container);
     window.mapsizex = 750;
     window.mapsizey = 480;
@@ -183,7 +195,7 @@ function makeUI(reactor, canvas) {
     }
     makeRequirements(canvas, reactor);
 }
-window.makeRequirements = function (canvas, reactor) {
+export function makeRequirements(canvas, reactor) {
     var reqDiv = $(canvas).find('.reqs')[0];
     clear(reqDiv);
     var extra = makeInBox(reqDiv, reactor.alpha.in, reactor.alpha.mode, 20);
@@ -264,7 +276,7 @@ function makeInBox(container, inProbs, greekMode, offsetx) {
     }
     return extra - 100;
 }
-function makeInOutBox(container, elements, bonds, greekMode, offsetx, size) {
+export function makeInOutBox(container, elements, bonds, greekMode, offsetx, size) {
     var syms = [];
     var extra = size == "large" ? 4 : 0;
     for (var i = 0; i < 4 + extra; i++) {
@@ -463,7 +475,7 @@ function dropSymbolOnSquare(dropTarget, symbol) {
     curReactor.alpha.startSymbol && makePath(curReactor.alpha.startSymbol.parentSquare, curReactor.alpha);
     curReactor.beta.startSymbol && makePath(curReactor.beta.startSymbol.parentSquare, curReactor.beta);
 }
-function makeHeader(greek, greekSymbol) {
+export function makeHeader(greek, greekSymbol) {
     var ret = "";
     ret += greekSymbol + " ";
     if (greek.outReqs.elements) {
@@ -474,7 +486,7 @@ function makeHeader(greek, greekSymbol) {
 
 function setSqListeners(sq) {
     sq.onclick = function () {
-        var sym = window["symbol" + curSymbol].place(greek(), sq);
+        var sym = symsrv.getSymbol(curSymbol).place(greek(), sq);
         if (sym) {
             greek().symbols.push(sym);
             if (greek().startSymbol) {
@@ -507,7 +519,7 @@ window.save = function () {
     level.save = saveState;
     updatePersonalData();
 }
-function saveReactorFeatures(reactor) {
+export function saveReactorFeatures(reactor) {
     var saveFeatures = { bonders: [] };
     if (reactor.reactorFeatures.bonders) {
         for (var bonder of reactor.reactorFeatures.bonders) {
@@ -554,7 +566,7 @@ window.load = function () {
         loadReactor(saveState, curReactor);
     }
 }
-window.loadReactor = function (saveState, reactor) {
+export function loadReactor (saveState, reactor) {
     reactor.alpha.symbols = loadGreek(reactor.alpha, saveState.alpha);
     reactor.beta.symbols = loadGreek(reactor.beta, saveState.beta);
     reactor.alpha.startSymbol && makePath(reactor.alpha.startSymbol.parentSquare, reactor.alpha);
@@ -584,10 +596,10 @@ window.loadReactor = function (saveState, reactor) {
         dropSymbolOnSquare(dropTarget, reactor.reactorFeatures.fuser);
     }
 }
-function saveGreek(greek) {
+export function saveGreek(greek) {
     var symbols = [];
     for (var sym of greek.symbols) {
-        var saveSym = window["saveSym" + sym.name](sym);
+        var saveSym = symsrv.getSave(sym.name)(sym);
         symbols.push(saveSym);
     }
     return symbols;
@@ -596,8 +608,8 @@ function loadGreek(greek, saveState) {
     var symbols = [];
     for (var sym of saveState) {
         var sq = symAtCoords(curReactor.levelSquares, { x: sym.gridx, y: sym.gridy }, false);
-        var symEl = window["symbol" + sym.name].place(greek, sq);
-        window["symLoad" + sym.name](symEl, sym);
+        var symEl = symsrv.getSymbol(sym.name).place(greek, sq);
+        symsrv.getLoad(sym.name)(symEl, sym);
         if (symEl) {
             symbols.push(symEl);
         }
@@ -723,7 +735,7 @@ function switchGreek(greekMode, canvas) {
     }
     makeBuildButtons(canvas);
 }
-function deselBtns(container) {
+export function deselBtns(container) {
     for (var child of container.childNodes) {
         child.classList.remove("selected");
     }
@@ -759,7 +771,14 @@ function makeRunButtons(canvas) {
         run(canvas, 2000, 2);
     });
 }
-function stopGame(canvas) {
+export let alterableStopGame = stopGameImpl;
+export function changeStopGame(newStop) {
+  alterableStopGame = newStop;
+}
+export function stopGame(canvas) {
+  alterableStopGame(canvas);
+}
+function stopGameImpl(canvas) {
     clearIntervals();
     delElement(curReactor.alpha.waldo);
     delElement(curReactor.beta.waldo);
@@ -799,19 +818,7 @@ function makebtns(greekMode, tagname, parent, text, left, top, name, funct, widt
     ret.name = name;
     return ret;
 }
-function deselectAll() {
-    for (var i = 0; i < curReactor.alpha.symbols.length; i++) {
-        var sym = curReactor.alpha.symbols[i];
-        sym.selected = false;
-        sym.classList.remove("selected");
-    }
-    for (var i = 0; i < curReactor.beta.symbols.length; i++) {
-        var sym = curReactor.beta.symbols[i];
-        sym.selected = false;
-        sym.classList.remove("selected");
-    }
-}
-function makesym(tagname, parent, clazz, left, top, width, height, butts) {
+window.makesym = function(tagname, parent, clazz, left, top, width, height, butts) {
     var ret = makesq(tagname, parent, clazz, left, top, width, height);
     ret.onclick = function (event) {
         deselectAll();
@@ -838,8 +845,7 @@ function showSymSpecificButtons(buttons, element) {
         buttons(element);
 }
 
-
-function updatePersonalData() {
+export function updatePersonalData() {
     var user = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
     netService.set(window.personalData, user.id);
 }
@@ -862,15 +868,14 @@ function traverseBondsIter(el, visit, visited) {
         }
     }
 }
-window.getLevelWebData = function (callback) {
+function getLevelWebData (callback) {
     netService.get(MAINJSONBOX)
       .then(function (data, textStatus, jqXHR) {
           callback(data);
       });
 }
-window.getPersonalData = function () {
+function getPersonalData () {
     var me = levelWebData.uniqueNames.filter(u => u.name == uniqueName)[0];
-    var url = MASTERURL + me.id;
     netService.get(me.id)
       .then(function (data, textStatus, jqXHR) {
           window.personalData = data;

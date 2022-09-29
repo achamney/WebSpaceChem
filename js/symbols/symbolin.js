@@ -1,4 +1,6 @@
-﻿window.symbolIn = {
+import * as symsrv from './symbolservice.js';
+import { adjustBondBars } from "./symbolbond.js";
+symsrv.registerSymbol({
     place: function (greek, sq) {
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
         var sym = makesym('div', sq, 'symbol in In' + greek.mode + ' ' + greek.mode, 0, 0, 50, 50, createInSubButtons(greek));
@@ -8,7 +10,7 @@
         setGrid(sym, sq, sq);
         return sym;
     }
-}
+},"In");
 window.makeInPerfActionFn = function(sym, greek) {
     return function (greekName, greekMode) {
         var yMod = sym.greek == curReactor.beta.mode ? 4 : 0;
@@ -106,12 +108,12 @@ function createInSubButtons(greek) {
         }, 100, 50));
     }
 }
-window.saveSymIn = function (sym) {
+symsrv.registerSave(function (sym) {
     var ret = saveBase(sym);
     ret.greek = sym.greek;
     return ret;
-};
-window.symLoadIn = function (symEl, saveState) {
+},"In");
+symsrv.registerLoad(function (symEl, saveState) {
     symEl.greek = saveState.greek;
     if (symEl.greek == "Alpha") {
         symEl.classList.add("InAlpha");
@@ -121,11 +123,11 @@ window.symLoadIn = function (symEl, saveState) {
         symEl.classList.add("InBeta");
         symEl.classList.remove("InAlpha");
     }
-};
+},"In");
 
 window.prodInFn = function (sym, greek) {
     return function (greekName, greekMode) {
-        var entranceGreek = window.greek(sym.greek); 
+        var entranceGreek = window.greek(sym.greek);
         if (entranceGreek.entrance.length > 0) {
             var elContainer = entranceGreek.entrance[0];
             var pipe = symAtCoords(pipes, { x: elContainer.prodx, y: elContainer.prody });

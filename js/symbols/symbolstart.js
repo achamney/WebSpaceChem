@@ -1,4 +1,5 @@
-﻿window.symbolStart = {
+import * as symsrv from './symbolservice.js';
+symsrv.registerSymbol({
     place: function (greek, sq) {
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
         if (greek.startSymbol) {
@@ -16,7 +17,7 @@
         greek.startSymbol = sym;
         return sym;
     }
-}
+},"Start");
 function createStartSubButtons(greek) {
     return function () {
         var butList = [], parent = get("symButtons" + curReactor.id);
@@ -55,11 +56,11 @@ function createStartSubButtons(greek) {
         }, 100, 50));
     };
 }
-window.saveSymStart = function (sym) {
+symsrv.registerSave(function (sym) {
     var ret = saveBase(sym);
     ret.direction = sym.direction;
     return ret;
-};
-window.symLoadStart = function (symEl, saveState) {
+},"Start");
+symsrv.registerLoad(function (symEl, saveState) {
     symEl.direction = saveState.direction;
-};
+},"Start");

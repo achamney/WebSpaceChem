@@ -1,4 +1,5 @@
-﻿window.symbolFuse = {
+import * as symsrv from './symbolservice.js';
+symsrv.registerSymbol({
     place: function (greek, sq) {
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
         var sym = makesym('div', sq, 'symbol fuseSym ' + greek.mode, 0, 0, 50, 50, makeFuseButtons(greek));
@@ -27,7 +28,7 @@
         setGrid(sym, sq, sq);
         return sym;
     }
-}
+},"Fuse");
 function getElOnFuser(elements, sen, offset) {
     offset = offset || 0;
     for (var el of elements.childNodes) {
@@ -54,9 +55,9 @@ function makeFuseButtons(greek) {
         }, 100, 50));
     };
 }
-window.saveSymFuse = function (sym) {
+symsrv.registerSave(function (sym) {
     var ret = saveBase(sym);
     return ret;
-};
-window.symLoadFuse = function (symEl, saveState) {
-};
+},"Fuse");
+symsrv.registerLoad(function (symEl, saveState) {
+},"Fuse");

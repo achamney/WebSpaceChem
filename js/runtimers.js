@@ -1,3 +1,4 @@
+import {stopGame, makeHeader} from "./game.js"
 window.run = function(canvas, moveTime, symbolTime) {
     if (curReactor.alpha.startSymbol)
         runSetup(canvas, curReactor.alpha, "Alpha");
@@ -38,7 +39,7 @@ window.run = function(canvas, moveTime, symbolTime) {
         checkWin();
     }, symbolTime);
 }
-function runSetup(canvas, greek, greekMode) {
+export function runSetup(canvas, greek, greekMode) {
     // don't recreate the waldo if changing timer intervals
     if (!greek.waldo) {
         greek.waldo = makesq('div', canvas, 'waldo ' + greekMode,
@@ -51,7 +52,7 @@ function runSetup(canvas, greek, greekMode) {
         greek.waldo.action = "move";
     }
 }
-function moveRunTimer(greek, greekMode, timeInterval) {
+export function moveRunTimer(greek, greekMode, timeInterval) {
 
     var xDistTick = mapsizex / 10 / timeInterval,
         yDistTick = mapsizey / 8 / timeInterval;
@@ -68,7 +69,7 @@ function moveRunTimer(greek, greekMode, timeInterval) {
         rotateMoveElements(greek, timeInterval);
     }
 }
-function activateMoveRunTimer(greek, greekMode) {
+export function activateMoveRunTimer(greek, greekMode) {
     if (greek.waldo.action == "move") {
         greek.waldo.gridx += greek.waldo.direction.x;
         greek.waldo.gridy += greek.waldo.direction.y;
@@ -88,7 +89,7 @@ function activateMoveRunTimer(greek, greekMode) {
         }
     }
 }
-function activateRunTimer(greek, greekMode) {
+export function activateRunTimer(greek, greekMode) {
     if (greek.waldo.action == "move") {
 
         var arrowSym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy }, true);
@@ -107,7 +108,7 @@ function activateRunTimer(greek, greekMode) {
     }
     else if (greek.waldo.action == "in") {
         var sym = symAtCoords(greek.symbols, { x: greek.waldo.gridx, y: greek.waldo.gridy });
-        var entranceGreek = window.greek(sym.greek); 
+        var entranceGreek = window.greek(sym.greek);
         if (entranceGreek.entrance.length > 0) {
             var yMod = sym.greek == curReactor.beta.mode ? 4 : 0;
             var elements = get("elements" + greek.reactorId);
@@ -139,7 +140,7 @@ window.clearIntervals = function() {
     }
 }
 
-function checkCollisions(reactor) {
+export function checkCollisions(reactor) {
     var elementParent = get("elements"+reactor.id);
     for (var el of elementParent.childNodes) {
         var elLeft = parseInt(el.style.left),
@@ -167,7 +168,7 @@ function checkWin() {
     if (curReactor.alpha.outReqs.count && curReactor.alpha.outReqs.count > 0) {
         winGame = false;
     }
-    
+
     if (curReactor.beta.outReqs.count && curReactor.beta.outReqs.count  > 0) {
         winGame = false;
     }
@@ -193,8 +194,8 @@ function checkWin() {
                 level.cycles = cycles;
             }
         }
-        updatePersonalData();
+        netService.set(personalData, personalData._id);
         stopGame(get("canvas"));
-        
+
     }
 }

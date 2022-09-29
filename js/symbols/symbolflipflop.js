@@ -1,7 +1,8 @@
-﻿window.symbolFlipFlop = {
+import * as symsrv from './symbolservice.js';
+symsrv.registerSymbol({
     place: function (greek, sq) {
         if (symAtCoords(greek.symbols, { x: sq.gridx, y: sq.gridy }, false)) return;
-        
+
         var sym = makesym('div', sq, 'symbol flipflop flip ' + greek.mode, 0, 0, 50, 50, createFFSubButtons(greek));
         sym.direction = {x:1,y:0};
         sym.name = "FlipFlop";
@@ -27,7 +28,7 @@
         setGrid(sym, sq, sq);
         return sym;
     }
-}
+}, "FlipFlop");
 function createFFSubButtons(greek) {
     return function () {
         var butList = [], parent = get("symButtons" + curReactor.id);
@@ -67,11 +68,11 @@ function createFFSubButtons(greek) {
     };
 }
 
-window.saveSymFlipFlop = function (sym) {
+symsrv.registerSave(function (sym) {
     var ret = saveBase(sym);
     ret.direction = sym.direction;
     return ret;
-};
-window.symLoadFlipFlop = function (symEl, saveState) {
+}, "FlipFlop");
+symsrv.registerLoad(function (symEl, saveState) {
     symEl.direction = saveState.direction;
-};
+}, "FlipFlop");

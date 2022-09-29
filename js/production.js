@@ -1,4 +1,6 @@
-﻿
+﻿import * as game from './game.js'
+﻿import * as runtime from './runtimers.js'
+﻿import {meetsRequirements, checkAllInBounds, elementsGrabbed} from './symbols/symbolout.js'
 window.curReactor = null;
 window.saveCurReactor = null;
 window.loadProduction = function (config) {
@@ -15,8 +17,8 @@ window.loadProduction = function (config) {
     for (var i = 0; i < gridNumX; i++) {
 
         for (var j = 0; j < gridNumY; j++) {
-            var sq = makesq('div', canvas, 'square', 
-				i * (mapsizex / gridNumX), j * (mapsizey / gridNumY), 
+            var sq = makesq('div', canvas, 'square',
+				i * (mapsizex / gridNumX), j * (mapsizey / gridNumY),
 				mapsizex / gridNumX, mapsizey / gridNumY,
                 dropSymProdSq(sq));
             setProdSqListeners(sq);
@@ -61,8 +63,8 @@ window.loadProduction = function (config) {
     window.run = runProd;
     window.makeInPerfActionFn = prodInFn;
     window.outFn = prodOutFn;
-    window.stopReactor = stopGame;
-    window.stopGame = stopProdGame;
+    window.stopReactor = game.alterableStopGame;
+    game.changeStopGame(stopProdGame);
     window.load = loadProdSave;
     delElement(get('reqs'));
     loadProdSave();
@@ -71,7 +73,7 @@ window.loadProduction = function (config) {
 function makeProdHeader(depo) {
     return "Molecules Remaining: " + depo.outData.count;
 }
-function makePipe(container, direction, parent) {
+export function makePipe(container, direction, parent) {
     var pipe = makesq("div", container, "pipe", 0, 0, mapsizex / gridNumX, mapsizey / gridNumY);
     setGrid(pipe, container, container);
     if (direction.x != 0) {
@@ -130,7 +132,7 @@ function dropSymProdSq(sq){
         if (symbol.nodeName == "BUTTON") {
             curReactorType = symbol.name;
             $(dropTarget).click();
-            deselBtns(get("buttonContainer"));
+            game.deselBtns(get("buttonContainer"));
             symbol.classList.add("selected");
         } else {
             if (!symbol.selected) {
@@ -204,7 +206,7 @@ function setProdSqListeners(sq) {
             } else if (pipeOnSq != currentDragPipe && pipeOnSq != currentDragPipe.upstream && pipeOnSq.length != 2) {
                 currentDragPipe = null;
                 saveProd();
-            } 
+            }
         }
     }
 }
@@ -239,21 +241,28 @@ function makeProdBottomButtons() {
         clearAll();
         save();
     });
+    makebtn('button', buttonContainer, 'Clear Pipes', -50 + (buttonpos += 155), mapsizey + 60, function () {
+        clearPipes();
+        save();
+    });
 }
 function clearAll() {
     for (var i = reactors.length - 1; i >= 0; i--) {
         var reactor = reactors[i];
         deleteReactor(reactor);
     }
-    for (var i = pipes.length-1;i>=0;i--) {
-        var pipe = pipes[i];
-        if(!pipe.upstream.inData) {
-            delElement(pipe);
-            pipes.splice(i, 1);
-        } else {
-            pipe.canMakeMore = true;
-        }
-    }
+    clearPipes();
+}
+function clearPipes(){
+  for (var i = pipes.length-1;i>=0;i--) {
+      var pipe = pipes[i];
+      if(!pipe.upstream.inData) {
+          delElement(pipe);
+          pipes.splice(i, 1);
+      } else {
+          pipe.canMakeMore = true;
+      }
+  }
 }
 function saveProd() {
     window.saveNumber = window.saveNumber || 0;
@@ -267,9 +276,9 @@ function saveProd() {
     }
     for (var reactor of reactors) {
         saveState.reactors.push({
-            alpha: saveGreek(reactor.alpha),
-            beta: saveGreek(reactor.beta),
-            reactorFeatures: saveReactorFeatures(reactor),
+            alpha: game.saveGreek(reactor.alpha),
+            beta: game.saveGreek(reactor.beta),
+            reactorFeatures: game.saveReactorFeatures(reactor),
             type: reactor.type,
             x: reactor.gridx,
             y: reactor.gridy
@@ -302,10 +311,10 @@ function saveProd() {
         personalData.levels.push(level);
     }
     level.save = saveState;
-    updatePersonalData();
+    netService.set(personalData, personalData._id)
 }
 
-function deleteReactorPipes(reactor) {
+export function deleteReactorPipes(reactor) {
     for (var outPipe of reactor.outPipes) {
         var curPipe = outPipe.downstream;
         outPipe.canMakeMore = true;
@@ -316,7 +325,7 @@ function deleteReactorPipes(reactor) {
         }
     }
 }
-function prodCollide(sq, me, size) {
+export function prodCollide(sq, me, size) {
     var allEls = reactors.concat(pipes, sources, outs);
     for (var el of allEls) {
         if (me && el == me) continue;
@@ -329,7 +338,7 @@ function prodCollide(sq, me, size) {
     }
     return null;
 }
-function makeProdDelButton() {
+export function makeProdDelButton() {
     return function (selected) {
         var parent = get("symButtons");
         clear(parent);
@@ -434,7 +443,7 @@ function makeProdbtns(tagname, parent, text, name, left, top, funct, width, heig
     ret.classList.add('btn');
     ret.draggable = true;
     ret.onclick = function () {
-        deselBtns(get("buttonContainer"));
+        game.deselBtns(get("buttonContainer"));
         ret.classList.add("selected");
         funct();
     }
@@ -469,7 +478,7 @@ function stopProdGame(canvas) {
     saveCurReactor = null;
     cycles = 0;
 }
-function getReactorCanvas(reactor) {
+export function getReactorCanvas(reactor) {
     return get(`modaltext${reactor.id}`);
 }
 window.runProd = function (canvas, moveTime, symbolTime) {
@@ -482,9 +491,9 @@ window.runProd = function (canvas, moveTime, symbolTime) {
     clearIntervals();
     for (var reactor of reactors) {
         if (reactor.alpha.startSymbol)
-            runSetup(getReactorCanvas(reactor), reactor.alpha, "Alpha");
+            runtime.runSetup(getReactorCanvas(reactor), reactor.alpha, "Alpha");
         if (reactor.beta.startSymbol)
-            runSetup(getReactorCanvas(reactor), reactor.beta, "Beta");
+            runtime.runSetup(getReactorCanvas(reactor), reactor.beta, "Beta");
     }
 
     // Move
@@ -495,11 +504,11 @@ window.runProd = function (canvas, moveTime, symbolTime) {
         window.moveInterval = window.setInterval(function () {
             for (var reactor of reactors) {
                 curReactor = reactor;
-                if (reactor.alpha.startSymbol) 
-                    moveRunTimer(reactor.alpha, "Alpha", timeInterval);
+                if (reactor.alpha.startSymbol)
+                    runtime.moveRunTimer(reactor.alpha, "Alpha", timeInterval);
                 if (reactor.beta.startSymbol)
-                    moveRunTimer(reactor.beta, "Beta", timeInterval);
-                checkCollisions(reactor);
+                    runtime.moveRunTimer(reactor.beta, "Beta", timeInterval);
+                runtime.checkCollisions(reactor);
             }
             for (var element of elements.childNodes) {
                 if (element.state == "move") {
@@ -520,7 +529,7 @@ window.runProd = function (canvas, moveTime, symbolTime) {
     }
 
     // ActivateSymbol
-    window.activateInterval = window.setInterval(function () {    
+    window.activateInterval = window.setInterval(function () {
         for (var el of elements.childNodes) {
             if (el.state == "move") {
                 var lastPipe = symsAtCoords(pipes, { x: el.prodx, y: el.prody });
@@ -561,16 +570,16 @@ window.runProd = function (canvas, moveTime, symbolTime) {
         for (var reactor of reactors) {
             curReactor = reactor;
             if (reactor.alpha.startSymbol)
-                activateMoveRunTimer(reactor.alpha, "Alpha");
+                runtime.activateMoveRunTimer(reactor.alpha, "Alpha");
             if (reactor.beta.startSymbol)
-                activateMoveRunTimer(reactor.beta, "Beta");
+                runtime.activateMoveRunTimer(reactor.beta, "Beta");
             if (reactor.alpha.startSymbol)
-                activateRunTimer(reactor.alpha, "Alpha");
+                runtime.activateRunTimer(reactor.alpha, "Alpha");
             if (reactor.beta.startSymbol)
-                activateRunTimer(reactor.beta, "Beta");
-            checkCollisions(reactor);
-            reactor.headerAlpha.innerHTML = makeHeader(reactor.alpha, "&alpha;");
-            reactor.headerBeta.innerHTML = makeHeader(reactor.beta, "&beta;");
+                runtime.activateRunTimer(reactor.beta, "Beta");
+            runtime.checkCollisions(reactor);
+            reactor.headerAlpha.innerHTML = game.makeHeader(reactor.alpha, "&alpha;");
+            reactor.headerBeta.innerHTML = game.makeHeader(reactor.beta, "&beta;");
         }
         for (var source of sources) {
             source.counter++;
@@ -591,16 +600,10 @@ window.runProd = function (canvas, moveTime, symbolTime) {
         cycles++;
     }, symbolTime);
 }
-function openReactor(reactor) {
+export function openReactor(reactor) {
     var modal = document.getElementById("reactorModal" + reactor.id);
     curReactor = reactor;
     modal.style.display = "block";
-}
-function getSourceFromPipe(pipe) {
-    while (pipe.upstream) {
-        pipe = pipe.upstream;
-    }
-    return pipe;
 }
 window.makeInDataFromElements = function (elContainer, xmod) {
     xmod = xmod || 0;
@@ -636,7 +639,7 @@ window.makeInDataFromElements = function (elContainer, xmod) {
     }
     return inData;
 }
-function makeProdElement(parentSquare, inData) {
+export function makeProdElement(parentSquare, inData) {
     var elements = get('elements');
     var elContainer = make("div", elements, "prodElContainer");
     var pipe = symsAtCoords(pipes, {
@@ -665,11 +668,11 @@ window.prodDeposit = function (elContainer) {
     // meets requirements recursively parses the nodes, only need to grab the first element
     var el1 = elContainer.childNodes[0];
     var pipe = prodCollide({ gridx: elContainer.prodx, gridy: elContainer.prody }, null, { x: 1, y: 1 });
-    var outReqs = pipe.downstream.outData;
+    var outReqs = pipe.outData ? pipe.outData : pipe.downstream.outData;
     var meetsReqs = meetsRequirements(el1, { outReqs: outReqs });
     if (meetsReqs) {
         var pipe = symAtCoords(pipes, { x: elContainer.prodx, y: elContainer.prody });
-        pipe.curElement = null;
+        pipe && (pipe.curElement = null);
         delElement(elContainer);
         outReqs.count--;
         checkProdWin();
@@ -710,7 +713,7 @@ function checkProdWin() {
                 level.cycles = cycles;
             }
         }
-        updatePersonalData();
+        game.updatePersonalData();
         stopProdGame(get('canvas'));
     }
 }
@@ -737,7 +740,7 @@ function loadProdSave() {
             if (sym) {
                 reactors.push(sym);
             }
-            loadReactor(reactor, reactors[reactors.length - 1]);
+            game.loadReactor(reactor, reactors[reactors.length - 1]);
         }
         if (saveCurReactor) {
             $(reactors[saveReactorIndex]).click();
@@ -771,5 +774,49 @@ function loadProdSave() {
             console.log(e);
         }
         resetEntrancePipes();
+    }
+}
+
+function prodOutFn (sym, greek) {
+    var elements = get("elements" + greek.reactorId);
+    return function (greekName, greekMode) {
+        var outed = false;
+        for (var i = elements.childNodes.length - 1; i >= 0; i--) {
+            var element = elements.childNodes[i];
+            var boundsFn = (x, y) => x > 5 && y < 4;
+            if (curReactor.alpha.outReqs.size == "large") {
+                boundsFn = (x, y) => x > 5;
+            }
+            if (element && !elementsGrabbed(element)) {
+                if (sym.greek == "Alpha") {
+                    if (checkAllInBounds(element, boundsFn)) {
+                        performProdOut(curReactor.alpha, greek, element, outed);
+                        outed = true;
+                    }
+                }
+                else if (sym.greek == "Beta") {
+                    if (checkAllInBounds(element, (x, y) => x > 5 && y >= 4)) {
+                        performProdOut(curReactor.beta, greek, element, outed);
+                        outed = true;
+                    }
+                }
+            }
+        }
+    };
+}
+function performProdOut(greek, walGreek, element, outed) {
+    if (!outed) {
+        var outElements = [];
+        traverseBonds(element, b => {
+            outElements.push(b);
+            delElement(b);
+        });
+        var reactor = get(greek.reactorId);
+        var outPipe = greek == reactor.alpha ? reactor.outPipes[0] : reactor.outPipes[1];
+        var inData = makeInDataFromElements({ childNodes: outElements }, 6);
+        makeProdElement(outPipe, inData);
+        walGreek.waldo.action = "move";
+    } else {
+        walGreek.waldo.action = "out";
     }
 }
