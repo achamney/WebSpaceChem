@@ -45,6 +45,8 @@ window.onload = function () {
             await makeNewSave(uniqueName);
         }
         getPersonalData();
+        debugger;
+        setConfig(configs[0])();
     });
     async function makeNewSave(uniqueName) {
         window.personalData = { levels: [] };
@@ -105,6 +107,15 @@ function setConfig(config) {
     return function () {
         window.levelName = config.name;
         get("config").value = JSON.stringify(config, null, 4);
+        var preview = get("reqOutputPreview");
+        preview.innerHTML = `<h2>${config.name}</h2><div class='reqs'></div>`;
+        if (!config.production)
+          makeRequirements(preview, config);
+        else {
+          config.outReqs.forEach((outData)=>{
+            makeInOutBox($("#reqOutputPreview .reqs")[0], outData.elements, outData.bonds, "", 0);//preview.innerHTML = preview.innerHTML+`<h5>Production</h5>`;
+          })
+        }
     }
 }
 window.cycles = 0;

@@ -182,7 +182,7 @@ window.reactordisassembly = {
             } else {
                 greek.in = [];
             }
-            game.akeRequirements(prod.getReactorCanvas(sym), sym);
+            game.makeRequirements(prod.getReactorCanvas(sym), sym);
         }
         return sym;
     }

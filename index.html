@@ -7,33 +7,10 @@
 <body style="padding:0;margin:0">
     <div style="display: flex" id="configContainer">
         <div style="padding: 5px">
-            <h2>Config JSON:</h2>
-            <textarea rows="16" cols="100" id="config">
-            {
-                "alpha": {
-                    "in": [{
-                        "probability": 100,
-                        "elements": [{"name": "O", "x": 2, "y": 2 }],
-                        "bonds": []
-                    }],
-                    "outReqs": {
-                        "count": 10,
-                        "elements":[{"name":"H", "id":"H1", "x": 1, "y": 1},{"name":"O", "id":"O2", "x": 2, "y": 1},{"name":"H", "id":"H3", "x": 3, "y": 1}],
-                        "bonds":[{ "count": 1, "left": "H1", "right": "O2" },{ "count": 1, "left": "O2", "right": "H3" }]
-                    }
-                }, "beta": {
-                    "in": [{
-                        "probability": 100,
-                        "elements": [
-                            {"name": "H", "id":"h1", "x": 2, "y": 1, "bonds":["h2"] },
-                            {"name": "H", "id":"h2", "x": 3, "y": 1, "bonds":["h1"] }
-                        ],
-                        "bonds": [{ "count": 1, "left": "h1", "right": "h2" }]
-                    }],
-                    "outReqs": {}
-                },
-                "bonders": [{ "x": 4, "y": 3 }, { "x": 4, "y": 4 }, { "x": 5, "y": 3 }, { "x": 5, "y": 4 }]
-            }
+            <h2>Selected Level:</h2>
+
+            <div id="reqOutputPreview"><div class="reqs"></div></div>
+            <textarea rows="16" cols="100" id="config" style="display: none">
             </textarea>
             <br />
             <button id="begin">Begin</button>
